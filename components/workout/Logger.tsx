@@ -11,7 +11,10 @@ const REST_SECONDS = 90;
 
 export function Logger({ userId, initial, storageKey }: { userId: string; initial: Draft; storageKey: string }) {
   const router = useRouter();
-  const [draft, setDraft] = useState<Draft>(initial);
+  // Fresh id + start time in the browser: this page can be served from the offline cache,
+  // and a server-baked id would make two offline workouts collide (the 2nd would be dropped on sync).
+  const [draft, setDraft] = useState<Draft>(() =>
+    initial.planned ? initial : { ...initial, id: crypto.randomUUID(), startedAt: new Date().toISOString() });
   const [picking, setPicking] = useState(false);
   const [rest, setRest] = useState(0);
   const [saving, setSaving] = useState(false);

@@ -20,7 +20,7 @@ Storage, Realtime, pg_cron) · Dexie (IndexedDB) · OpenAI Responses API · Verc
 | Lint | `npm run lint` |
 | Unit (Vitest) | `npm test` |
 | Database (RLS, weekly close, quotas, challenges) | `npm run test:db` |
-| End-to-end (Playwright, 99 checks incl. auth/security) | `npm run e2e`, see [`e2e/README.md`](e2e/README.md) |
+| End-to-end (Playwright, 111 checks incl. offline cold launch + auth/security) | `npm run e2e`, see [`e2e/README.md`](e2e/README.md) |
 | CI on every PR | typecheck, lint, unit, `npm audit` (prod, high+), build: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 
 Security model and how it's tested: [`SECURITY.md`](SECURITY.md).

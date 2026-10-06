@@ -35,4 +35,32 @@ export function Pwa() {
 /** Ask the service worker to drop cached pages (call before signing out). */
 export function clearCachedPages() {
   navigator.serviceWorker?.controller?.postMessage("clear-pages");
+  try { localStorage.removeItem(WARMED); } catch {}
+}
+
+// Screens that must open with no signal: logging is the whole point offline.
+const CORE = ["/home", "/workouts", "/workouts/new", "/nutrition", "/nutrition/foods", "/camera", "/wagers", "/profile", "/offline"];
+const WARMED = "ironheart:warmed", EVERY = 6 * 3600_000;
+
+/** Signed-in only: pre-caches the core screens (and their scripts) so a cold launch works offline. */
+export function WarmCache() {
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || process.env.NODE_ENV !== "production") return;
+    try { if (Date.now() - Number(localStorage.getItem(WARMED)) < EVERY) return; } catch {}
+    void navigator.serviceWorker.ready.then((reg) => {
+      reg.active?.postMessage({ type: "warm", urls: CORE });
+      try { localStorage.setItem(WARMED, String(Date.now())); } catch {}
+    });
+    // The pickers read IndexedDB first, so prime it too: offline logging needs exercises + foods.
+    void Promise.all([import("@/lib/db"), import("@/lib/supabase/client")]).then(async ([{ db }, { supabaseBrowser }]) => {
+      const sb = supabaseBrowser();
+      const [ex, foods] = await Promise.all([
+        sb.from("exercises").select("id, name, muscle_group, equipment"),
+        sb.from("foods").select("id, name, serving_size, calories, protein_g, carbs_g, fat_g"),
+      ]);
+      if (ex.data) await db.exercises.bulkPut(ex.data);
+      if (foods.data) await db.foods.bulkPut(foods.data);
+    }).catch(() => {});
+  }, []);
+  return null;
 }

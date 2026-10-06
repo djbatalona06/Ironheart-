@@ -3,6 +3,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { TzCookie } from "@/components/layout/TzCookie";
 import { Toaster } from "@/components/notifications/Toaster";
+import { WarmCache } from "@/components/pwa/Pwa";
 import { requireUser, userTz } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
@@ -18,6 +19,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
       <TzCookie current={tz} />
       <Toaster me={user.id} />
+      <WarmCache />
       <Header unread={count ?? 0} name={profile.name ?? ""} avatarUrl={profile.avatar_url} />
       <main className="flex-1 px-4 pb-28 pt-2">{children}</main>
       <BottomNav />

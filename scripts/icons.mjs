@@ -21,3 +21,19 @@ await sharp(svg(true, 1)).resize(192).png().toFile("public/icons/192.png");
 await sharp(svg(false, 0.78)).resize(512).png().toFile("public/icons/maskable.png"); // content inside the 80% safe zone
 await sharp(svg(false, 0.9)).resize(180).png().toFile("public/icons/180.png");       // iOS adds its own rounding
 console.log("icons written");
+
+// iOS launch screens (apple-touch-startup-image): black + gold mark, per iPhone portrait size.
+// [css width, css height, device pixel ratio]. Keep in sync with app/layout.tsx (SPLASH).
+export const SPLASH = [
+  [440, 956, 3], [402, 874, 3], [430, 932, 3], [393, 852, 3], [428, 926, 3],
+  [390, 844, 3], [375, 812, 3], [414, 896, 3], [414, 896, 2], [375, 667, 2],
+];
+mkdirSync("public/splash", { recursive: true });
+for (const [w, h, r] of SPLASH) {
+  const W = w * r, H = h * r, logo = Math.round(W * 0.36);
+  const mark = await sharp(svg(false, 1)).resize(logo).png().toBuffer();
+  await sharp({ create: { width: W, height: H, channels: 3, background: "#0A0A0A" } })
+    .composite([{ input: mark, top: Math.round((H - logo) / 2), left: Math.round((W - logo) / 2) }])
+    .png({ compressionLevel: 9, palette: true }).toFile(`public/splash/${W}x${H}.png`);
+}
+console.log("splash screens written");

@@ -34,7 +34,15 @@ Turbopack (Next 16's default bundler). The app's caching needs fit in ~70 lines 
 - same-origin images → cache-first (100 entries)
 - Supabase / `/api` / `/auth` → never cached (private, always fresh)
 - Sign-out posts `clear-pages` so the next person on the device can't see cached pages
+- **Warm cache**: after sign-in (`WarmCache`, at most every 6h) the worker pre-caches the core screens
+  (`/home`, `/workouts`, `/workouts/new`, `/nutrition`, `/nutrition/foods`, `/camera`, `/wagers`, `/profile`)
+  plus every script/style they reference, and the exercise + food lists go into IndexedDB. A cold launch
+  with no signal can log a workout or a meal.
 Registered by `components/pwa/Pwa.tsx` in production only.
+
+## Splash Screens
+`scripts/icons.mjs` renders black + gold-mark launch images for 10 iPhone portrait sizes into
+`public/splash/`; `app/layout.tsx` links them via `appleWebApp.startupImage`.
 
 ## iOS Head Tags (via Next `metadata` / `viewport` exports)
 - `appleWebApp: { capable: true, title: 'IRONHEART', statusBarStyle: 'black-translucent' }`

@@ -26,10 +26,16 @@ Lighthouse 12 has no PWA category. Installability is covered by `e2e/pwa.mjs` (m
 - HTML and RSC responses shared a cache key, so an offline navigation could get a raw RSC payload → split caches
 - Several E2E checks didn't wait for streamed content once `loading.tsx` existed → `seen()` helper
 
+## Finishing pass ("finish the PWA")
+- **Offline cold launch**: the service worker pre-caches the core screens and their JS/CSS after sign-in; exercises and foods are primed into IndexedDB. Tested by stopping both the network and the app server, then opening a never-visited logger, logging two workouts, searching foods, reconnecting, and syncing.
+- **Data-loss bug fixed**: a cached `/workouts/new` page carried the id of a workout already saved online, so the next offline log reused it and was silently dropped on sync. The Logger now mints its id and start time in the browser. The test fails without the fix and passes with it.
+- **iOS splash screens**: 10 sizes (`public/splash/`), linked via `appleWebApp.startupImage`
+- **Storage-full fallback** proven: the upload is rejected (413) → the photo is kept on the device, the media row points at it, it isn't retried, and the day still shows as verified
+- Suite: **111 E2E checks**, all green; CI green on GitHub
+
 ## Not done / needs you
 - **Vercel deploy**: the connector got a 403 creating a project in team `vertex-supply`. Import the repo in the dashboard (`SETUP.md` §2).
 - **Real device testing**: iOS camera permission in standalone mode and front-camera orientation are marked `TODO: verify on device`.
-- iOS splash screens (`apple-touch-startup-image`) skipped; iOS shows the black background color meanwhile.
 
 ## Read this to learn
 1. `public/sw.js`: a service worker is just an event listener sitting between your app and the network.

@@ -1,7 +1,7 @@
 // IRONHEART service worker. Hand-written, no build step (docs/07, Phase 6 notes).
 // Static assets: cache-first. Pages + RSC payloads: network-first (3s), fall back
 // to cache, then /offline. Supabase/API traffic is never cached.
-const VERSION = "v1";
+const VERSION = "v2";
 // HTML and RSC payloads share URLs, so they live in separate caches (never serve one for the other).
 const STATIC = `static-${VERSION}`, PAGES = `pages-${VERSION}`, RSC = `rsc-${VERSION}`, IMAGES = `images-${VERSION}`;
 const PRECACHE = ["/offline", "/icons/192.png", "/icons/512.png"];
@@ -17,9 +17,28 @@ self.addEventListener("activate", (e) => {
 });
 
 // Sign-out clears cached pages so the next person on this device can't see them.
+// Signed-in pages ask us to "warm" the core screens so the app opens offline from a cold start.
 self.addEventListener("message", (e) => {
   if (e.data === "clear-pages") e.waitUntil(Promise.all([caches.delete(PAGES), caches.delete(RSC)]));
+  if (e.data?.type === "warm" && Array.isArray(e.data.urls)) e.waitUntil(warm(e.data.urls));
 });
+
+// Cache each page's HTML plus every script/style it references, so the screen
+// is interactive offline (not just painted).
+async function warm(urls) {
+  const pages = await caches.open(PAGES), statics = await caches.open(STATIC);
+  for (const path of urls) {
+    if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//")) continue; // same-origin only
+    try {
+      const res = await fetch(path, { credentials: "same-origin" });
+      if (!res.ok || res.redirected) continue; // signed out → /login; don't cache that
+      const html = await res.clone().text();
+      await pages.put(new Request(path), res);
+      const assets = [...new Set(html.match(/\/_next\/static\/[^"'\\\s)]+\.(?:js|css|woff2)/g) ?? [])];
+      for (const a of assets) if (!(await statics.match(a))) await statics.add(a).catch(() => {});
+    } catch { /* offline or failed: try again next warm */ }
+  }
+}
 
 async function trim(cacheName, max) {
   const c = await caches.open(cacheName);
