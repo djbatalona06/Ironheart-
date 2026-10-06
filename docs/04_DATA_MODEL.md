@@ -122,12 +122,13 @@ created_at timestamptz
 
 ### Calendar computation (no table)
 Each workout gets one **credit date** (partnership timezone):
-- `started_at`'s date, if `created_at` ≤ the close of `started_at`'s week
-- otherwise `created_at`'s date (late sync → credited to the open week; the
+- `started_at`'s date, if `done_at` ≤ the close of `started_at`'s week
+- otherwise `done_at`'s date (late sync → credited to the open week; the
   closed week is never re-scored)
 
-`created_at` is set by the server (`default now()`), never sent by the client,
-so it equals the sync time. A day counts for a user when ≥1 workout is credited
+`done_at` is set by a trigger the moment a workout becomes `done` on the server
+(never sent by the client), so it equals the sync time, including for a
+*planned* workout completed offline. Planned workouts never count. A day counts for a user when ≥1 workout is credited
 to it. A day is verified when that
 workout has a `media` row with `is_checkin = true`. SQL view:
 `pact_week_days(partnership_id, week_start)` → `(day date, user_id, trained bool, verified bool, late bool)`.

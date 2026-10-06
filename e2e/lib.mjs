@@ -42,3 +42,24 @@ export async function onboard(page, { name, handle }) {
 export function check(ok, msg) {
   if (!ok) { console.error("FAIL:", msg); process.exitCode = 1; } else console.log("ok -", msg);
 }
+
+import { execFileSync } from "node:child_process";
+/** Run SQL as postgres against the local stack (test setup only). */
+export function sql(q) {
+  return execFileSync("psql", [process.env.DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres", "-tAc", q]).toString().trim();
+}
+
+/** Add one exercise with a completed set and finish the workout. */
+export async function logWorkout(page, name, beforeFinish) {
+  await page.goto(`${BASE}/workouts/new`);
+  await page.fill('input[aria-label="Workout name"]', name);
+  await page.click("text=Add exercise");
+  await page.fill('input[aria-label="Search exercises"]', "bench");
+  await page.click("text=Barbell Bench Press");
+  await page.fill('input[aria-label="Set 1 weight"]', "100");
+  await page.fill('input[aria-label="Set 1 reps"]', "5");
+  await page.click('button[aria-label="Complete set 1"]');
+  if (beforeFinish) return beforeFinish().then(() => page.click("text=/Finish workout/"));
+  await page.click("text=/Finish workout/");
+  await page.waitForURL("**/workouts?saved=*");
+}

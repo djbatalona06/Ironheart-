@@ -4,10 +4,11 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/env";
+import type { Database } from "./types";
 
 export async function supabaseServer() {
   const store = await cookies();
-  return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll: () => store.getAll(),
       setAll: (list) => {
@@ -23,7 +24,7 @@ export async function supabaseServer() {
 
 /** Service-role client. Server only; bypasses RLS — use for counters/admin tasks. */
 export function supabaseAdmin() {
-  return createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY ?? "", {
+  return createClient<Database>(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY ?? "", {
     auth: { persistSession: false },
   });
 }

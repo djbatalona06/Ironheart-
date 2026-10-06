@@ -75,10 +75,10 @@ Header (always visible): bell → Notifications, avatar → Profile.
 **Logger** `/workouts/new`
 - Name (or from template day), Add exercise → picker (search, muscle filter, add custom)
 - Per set: reps, weight, RPE, ✓ complete; rest timer auto-starts on ✓
-- "Add photo check-in" → Camera in check-in mode → returns with thumbnail
 - Finish → save (online or queued) → Workout Detail; partner gets `partner_checkin`
 - Leave with unsaved data → confirm dialog
-**Detail** `/workouts/[id]`: sets table, media, notes, Edit / Delete (own only)
+**Detail** `/workouts/[id]`: sets table, media, notes, "Add photo check-in" → Camera in check-in mode (marks the day verified), Delete (own only)
+- Finishing while offline shows "Saved on this device" in place; the queue syncs on reconnect
 
 ## Generator
 **Template Browser** `/workouts/generate`: grid of templates → Preview (days, exercises, est. duration)
