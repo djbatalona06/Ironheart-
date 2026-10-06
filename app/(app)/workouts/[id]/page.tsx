@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Camera } from "lucide-react";
 import { requireUser } from "@/lib/supabase/server";
+import { MediaThumb } from "@/components/workout/MediaThumb";
 import { DeleteWorkout } from "./DeleteWorkout";
 
 export default async function WorkoutDetail({ params }: PageProps<"/workouts/[id]">) {
@@ -9,7 +10,7 @@ export default async function WorkoutDetail({ params }: PageProps<"/workouts/[id
   const { supabase, user } = await requireUser();
   const { data: w } = await supabase
     .from("workouts")
-    .select("id, user_id, name, started_at, ended_at, notes, workout_sets(id, set_index, reps, weight_kg, rpe, completed, exercises(name)), media(id, type, is_checkin, caption)")
+    .select("id, user_id, name, started_at, ended_at, notes, workout_sets(id, set_index, reps, weight_kg, rpe, completed, exercises(name)), media(id, type, is_checkin, caption, storage_path)")
     .eq("id", id)
     .maybeSingle();
   if (!w) notFound();
@@ -21,6 +22,9 @@ export default async function WorkoutDetail({ params }: PageProps<"/workouts/[id
     const name = s.exercises?.name ?? "Exercise";
     groups.set(name, [...(groups.get(name) ?? []), s]);
   }
+  const remote = w.media.filter((m) => !m.storage_path.startsWith("local:")).map((m) => m.storage_path);
+  const { data: signed } = remote.length ? await supabase.storage.from("media").createSignedUrls(remote, 3600) : { data: [] };
+  const urlOf = (p: string) => signed?.find((s) => s.path === p)?.signedUrl ?? null;
   const minutes = w.ended_at ? Math.round((+new Date(w.ended_at) - +new Date(w.started_at)) / 60000) : null;
 
   return (
@@ -48,6 +52,11 @@ export default async function WorkoutDetail({ params }: PageProps<"/workouts/[id
           </table>
         </section>
       ))}
+      {w.media.length > 0 && (
+        <section className="grid grid-cols-2 gap-2">
+          {w.media.map((m) => <MediaThumb key={m.id} path={m.storage_path} url={urlOf(m.storage_path)} type={m.type} caption={m.caption} />)}
+        </section>
+      )}
       {w.notes && <p className="card whitespace-pre-wrap p-3 text-muted">{w.notes}</p>}
       {mine && (
         <div className="flex gap-3">

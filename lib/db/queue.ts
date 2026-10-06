@@ -25,7 +25,20 @@ async function send(item: QueueItem): Promise<Result> {
     // Sets upsert fully: planned sets get the logged reps/weights.
     return sets.length ? sb.from("workout_sets").upsert(sets, { onConflict: "id" }) : { error: null };
   }
+  if (item.kind === "media") return sb.from("media").upsert(item.payload, { onConflict: "id", ignoreDuplicates: true });
   return sb.from("nutrition_logs").upsert(item.payload, { onConflict: "id", ignoreDuplicates: true });
+}
+
+/** Upload photos/clips that were captured offline, then point their media rows at Storage. */
+async function uploadLocalMedia(userId: string) {
+  const sb = supabaseBrowser();
+  for (const m of await db.media.filter((x) => x.retry).toArray()) {
+    const path = `${userId}/${m.mediaId}.${m.ext}`;
+    const up = await sb.storage.from("media").upload(path, m.blob, { contentType: m.blob.type, upsert: true });
+    if (up.error) { await db.media.update(m.key, { retry: false }); continue; } // quota/limit: keep local
+    const { error } = await sb.from("media").update({ storage_path: path }).eq("id", m.mediaId);
+    if (!error) await db.media.delete(m.key);
+  }
 }
 
 let running: Promise<void> | null = null;
@@ -46,6 +59,8 @@ export function flush() {
         else if (!res.error.code) return; // transport-level error: retry later
         else await db.queue.update(item.seq!, { error: res.error.message });
       }
+      const { data } = await supabaseBrowser().auth.getSession(); // local read, no network
+      if (data.session && (await db.media.filter((x) => x.retry).count())) await uploadLocalMedia(data.session.user.id).catch(() => {});
     } finally {
       running = null;
     }

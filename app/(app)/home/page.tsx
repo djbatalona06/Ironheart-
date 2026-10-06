@@ -4,7 +4,6 @@ import { InviteCard } from "@/components/pact/InviteCard";
 import { LiveRefresh } from "@/components/pact/LiveRefresh";
 import { PactRulesBanner } from "@/components/pact/PactRulesBanner";
 import { WeekCalendar } from "@/components/pact/WeekCalendar";
-import { SyncPill } from "@/components/workout/SyncPill";
 import { loadPactWeek, people, type PactWeek } from "@/lib/pacts/load";
 import { requireUser } from "@/lib/supabase/server";
 
@@ -28,10 +27,7 @@ export default async function Home({ searchParams }: PageProps<"/home">) {
   return (
     <div className="space-y-4">
       <LiveRefresh userIds={active.map(partnerOf)} me={user.id} />
-      <div className="flex items-center justify-between">
-        <h1 className="display text-4xl">{offset === 0 ? "This week" : "History"}</h1>
-        <SyncPill />
-      </div>
+      <h1 className="display text-4xl">{offset === 0 ? "This week" : "History"}</h1>
       {invited && <p role="status" className="text-sm text-gold">Invite sent. We&apos;ll let you know when they accept.</p>}
 
       {incoming.map((p) => (

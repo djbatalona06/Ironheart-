@@ -9,7 +9,10 @@ const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUP
 });
 
 export async function browser() {
-  return chromium.launch({ executablePath: process.env.CHROME_PATH ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+  return chromium.launch({
+    executablePath: process.env.CHROME_PATH ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+    args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"], // fake camera
+  });
 }
 
 /** Signs a fresh page in as `email` via an admin-generated magic link (no mail server needed). */

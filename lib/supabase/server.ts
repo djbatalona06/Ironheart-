@@ -36,3 +36,9 @@ export async function requireUser() {
   if (!data.user) redirect("/login");
   return { supabase, user: data.user };
 }
+
+/** The user's IANA timezone from the `tz` cookie (UTC until the browser reports it). */
+export async function userTz() {
+  const { validTz } = await import("@/lib/tz");
+  return validTz((await cookies()).get("tz")?.value);
+}

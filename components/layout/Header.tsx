@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import { SyncPill } from "@/components/workout/SyncPill";
 
 export function Header({ unread, name, avatarUrl }: { unread: number; name: string; avatarUrl: string | null }) {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between bg-bg/90 px-4 pb-2 pt-[max(env(safe-area-inset-top),0.75rem)] backdrop-blur">
       <Link href="/home" className="display text-2xl text-gold">IRONHEART</Link>
       <div className="flex items-center gap-2">
+        <SyncPill />
         <Link href="/notifications" aria-label={`Notifications, ${unread} unread`} className="relative grid size-11 place-items-center">
           <Bell className="size-6" />
           {unread > 0 && (
