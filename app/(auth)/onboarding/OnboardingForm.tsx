@@ -2,8 +2,9 @@
 
 import { useActionState, useState } from "react";
 import { finishOnboarding } from "./actions";
+import { SURVEY_QUESTIONS } from "./survey";
 
-const STEPS = ["You", "Goal", "Body", "Nutrition", "Partner"] as const;
+const STEPS = ["You", "Goal", "Quick start", "Body", "Nutrition", "Partner"] as const;
 const GOALS = [["muscle", "Build muscle"], ["fat_loss", "Lose fat"], ["strength", "Get stronger"], ["endurance", "Endurance"]];
 const ACTIVITY = [["sedentary", "Desk job, little exercise"], ["light", "Light: 1–3 days/week"],
   ["moderate", "Moderate: 3–5 days/week"], ["active", "Active: 6–7 days/week"], ["very_active", "Very active / physical job"]];
@@ -11,11 +12,12 @@ const ACTIVITY = [["sedentary", "Desk job, little exercise"], ["light", "Light: 
 export function OnboardingForm({ defaultName }: { defaultName: string }) {
   const [step, setStep] = useState(0);
   const [state, action, pending] = useActionState(finishOnboarding, {});
+  const last = STEPS.length - 1;
   const show = (i: number) => (step === i ? "space-y-4" : "hidden");
 
   // One form across steps so every field submits together; hidden steps keep their values.
   return (
-    <form action={action} className="space-y-6" onKeyDown={(e) => e.key === "Enter" && step < 4 && e.preventDefault()}>
+    <form action={action} className="space-y-6" onKeyDown={(e) => e.key === "Enter" && step < last && e.preventDefault()}>
       <div aria-label={`Step ${step + 1} of ${STEPS.length}`} className="flex gap-1">
         {STEPS.map((s, i) => <span key={s} className={`h-1 flex-1 rounded ${i <= step ? "bg-gold" : "bg-line"}`} />)}
       </div>
@@ -39,6 +41,21 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
       </section>
 
       <section className={show(2)}>
+        <h1 className="display text-4xl">Quick start</h1>
+        <p className="text-sm text-muted">Three quick questions so we can tailor things. Skip any you like.</p>
+        {SURVEY_QUESTIONS.map((q) => (
+          <fieldset key={q.key} className="space-y-2">
+            <legend className="mb-1 text-sm text-muted">{q.label}</legend>
+            {q.options.map(([v, l]) => (
+              <label key={v} className="card flex min-h-11 items-center gap-3 p-3 has-checked:border-gold">
+                <input type="radio" name={q.key} value={v} className="accent-gold" />{l}
+              </label>
+            ))}
+          </fieldset>
+        ))}
+      </section>
+
+      <section className={show(3)}>
         <h1 className="display text-4xl">Body stats</h1>
         <p className="text-sm text-muted">Used only to calculate your calorie and macro goals. Skip if you like.</p>
         <div className="grid grid-cols-2 gap-3">
@@ -57,7 +74,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
             {ACTIVITY.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
       </section>
 
-      <section className={show(3)}>
+      <section className={show(4)}>
         <h1 className="display text-4xl">Track nutrition?</h1>
         {[["yes", "Yes, track calories and macros"], ["no", "No, just training"]].map(([v, l], i) => (
           <label key={v} className="card flex min-h-11 items-center gap-3 p-3 has-checked:border-gold">
@@ -66,7 +83,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
         ))}
       </section>
 
-      <section className={show(4)}>
+      <section className={show(5)}>
         <h1 className="display text-4xl">Train with someone</h1>
         <p className="text-muted">Pair with a partner, set a weekly goal and a stake. Miss it and you owe.</p>
         <button name="next" value="pact" className="btn-gold w-full" disabled={pending}>Invite a partner now</button>
@@ -75,16 +92,16 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
 
       {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
 
-      {step < 4 && (
+      {step < last && (
         <div className="flex gap-3">
           {step > 0 && <button type="button" className="btn-ghost flex-1" onClick={() => setStep(step - 1)}>Back</button>}
           <button type="button" className="btn-gold flex-1" onClick={(e) => {
             const fields = e.currentTarget.form!.querySelectorAll<HTMLInputElement>(`section:nth-of-type(${step + 1}) input`);
             if ([...fields].every((f) => f.reportValidity())) setStep(step + 1);
-          }}>{step === 2 ? "Next (or skip)" : "Next"}</button>
+          }}>{step === 2 || step === 3 ? "Next (or skip)" : "Next"}</button>
         </div>
       )}
-      {step === 4 && <button type="button" className="text-sm text-muted underline" onClick={() => setStep(3)}>Back</button>}
+      {step === last && <button type="button" className="text-sm text-muted underline" onClick={() => setStep(last - 1)}>Back</button>}
     </form>
   );
 }
