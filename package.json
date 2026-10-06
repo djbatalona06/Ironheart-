@@ -10,13 +10,14 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:db": "scripts/test-db.sh",
-    "e2e": "node e2e/smoke.mjs && node e2e/core-loop.mjs && node e2e/generator.mjs && node e2e/camera-nutrition.mjs",
+    "e2e": "node e2e/smoke.mjs && node e2e/core-loop.mjs && node e2e/generator.mjs && node e2e/camera-nutrition.mjs && node e2e/challenges.mjs",
     "gen:types": "supabase gen types typescript --local > lib/supabase/types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "browser-image-compression": "^2.0.2",
+    "canvas-confetti": "^1.9.4",
     "dexie": "^4.4.6",
     "docx": "^9.8.1",
     "exceljs": "^4.4.0",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -66,3 +66,11 @@ export async function logWorkout(page, name, beforeFinish) {
   await page.click("text=/Finish workout/");
   await page.waitForURL("**/workouts?saved=*");
 }
+
+/** Resolves once the page's Realtime socket has joined a channel whose topic contains `name`. */
+export function realtimeReady(page, name) {
+  return new Promise((resolve) => page.on("websocket", (ws) => ws.on("framereceived", (f) => {
+    const msg = String(f.payload);
+    if (msg.includes("Subscribed to PostgreSQL") && msg.includes(name)) resolve();
+  })));
+}

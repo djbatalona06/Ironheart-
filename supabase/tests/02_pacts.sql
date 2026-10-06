@@ -53,7 +53,8 @@ update public.workouts set started_at = (started_at::timestamp at time zone :'tz
   done_at = (done_at::timestamp at time zone :'tz'), status = 'done' where user_id in (:'a', :'b');
 set local session_replication_role = origin;
 
-select pg_temp.check(public.close_weeks() = 2, 'close_weeks closed W and W+7');
+select public.close_weeks();
+select pg_temp.check((select count(distinct week_start) = 2 from public.weekly_goals where partnership_id = :'pid' and result <> 'pending'), 'close_weeks closed W and W+7');
 select pg_temp.check(public.close_weeks() = 0, 'idempotent: second run closes nothing');
 
 select pg_temp.check((select result = 'hit' and days_done = 2 from public.weekly_goals where user_id = :'a' and week_start = :'w'), 'W: alice 2/2 hit (same-day workouts count once)');
@@ -63,8 +64,8 @@ select pg_temp.check((select result = 'hit' and days_done = 3 from public.weekly
 select pg_temp.check((select count(*) = 2 from public.weekly_goals where partnership_id = :'pid' and week_start = :'w'::date + 14 and result = 'pending'), 'current week carried forward');
 select pg_temp.check((select string_agg(stake, ',' order by week_start) from public.stake_ledger where partnership_id = :'pid') = 'Do dishes,Buy dinner', 'ledger: bob owes dishes, alice owes dinner');
 select pg_temp.check((select streak = 0 from public.partnerships where id = :'pid'), 'streak resets when someone misses');
-select pg_temp.check((select count(*) = 2 from public.points_ledger where reason = 'goal_hit'), '+20 per goal hit');
-select pg_temp.check((select count(*) = 4 from public.notifications where type = 'week_result'), 'week_result sent to both, each week');
+select pg_temp.check((select count(*) = 2 from public.points_ledger where reason = 'goal_hit' and ref_id = :'pid'), '+20 per goal hit');
+select pg_temp.check((select count(*) = 4 from public.notifications where type = 'week_result' and payload->>'partnership_id' = :'pid'), 'week_result sent to both, each week');
 
 -- ===== calendar + settle as users =====
 select pg_temp.login(:'a');

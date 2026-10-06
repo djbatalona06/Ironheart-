@@ -586,8 +586,14 @@ isOneToOne: false
 "award_points":
 { Args: { "delta": number,"ref": string,"uid": string,"why": string }; Returns: undefined
                            },
+"challenge_value":
+{ Args: { "metric": string,"t0": string,"t1": string,"uid": string }; Returns: number
+                           },
 "close_weeks":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"create_challenge":
+{ Args: { "description": string,"ends_at": string,"invitee_handle": string,"metric": string,"starts_at": string,"target"?: number,"title": string }; Returns: string
                            },
 "create_pact":
 { Args: { "goal_days": number,"partner_handle": string,"stake": string,"tz": string }; Returns: string
@@ -607,6 +613,9 @@ isOneToOne: false
 "is_wager_participant":
 { Args: { "w": string }; Returns: boolean
                            },
+"mark_all_read":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "me_card":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
@@ -618,8 +627,20 @@ isOneToOne: false
               "day": string,"late": boolean,"user_id": string,"verified": boolean,"workout_ids": (string)[]
             }[]
                            },
+"recompute_challenges":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"refresh_challenge":
+{ Args: { "w": string }; Returns: undefined
+                           },
+"respond_challenge":
+{ Args: { "accept": boolean,"w": string }; Returns: undefined
+                           },
 "respond_pact":
 { Args: { "accept": boolean,"goal_days"?: number,"p": string,"stake"?: string }; Returns: undefined
+                           },
+"send_gift":
+{ Args: { "gift": string,"note"?: string,"to_user": string,"wager"?: string }; Returns: undefined
                            },
 "set_goal":
 { Args: { "goal_days": number,"p": string,"stake": string }; Returns: string
