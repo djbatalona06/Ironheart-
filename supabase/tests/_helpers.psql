@@ -1,0 +1,21 @@
+-- Included by each test file. Runs as postgres inside the file's transaction.
+create or replace function pg_temp.mk_user(handle text) returns uuid language plpgsql as $$
+declare uid uuid := gen_random_uuid();
+begin
+  insert into auth.users (id, email, raw_user_meta_data) values (uid, handle || '@test.dev', jsonb_build_object('name', handle));
+  update public.profiles set handle = mk_user.handle, onboarded = true where id = uid;
+  return uid;
+end $$;
+
+-- Act as a signed-in user (RLS enforced) until the next `reset role`.
+create or replace function pg_temp.login(uid uuid) returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+end $$;
+
+create or replace function pg_temp.check(ok bool, msg text) returns void language plpgsql as $$
+begin
+  if ok is not true then raise exception 'FAIL: %', msg; end if;
+  raise notice 'ok - %', msg;
+end $$;
