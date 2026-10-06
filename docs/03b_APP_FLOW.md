@@ -61,7 +61,8 @@ Header (always visible): bell → Notifications, avatar → Profile.
 - Send invite → `pact_invite` notification to partner → back to Home with "Invite sent"
 - Back → Home
 
-**Accepting**: Notification or Home invite card → sheet showing inviter, their goal + stake → set my own goal + stake → Accept (pact active, starts current week) / Decline (inviter notified)
+**Accepting**: Notification or Home invite card → sheet showing inviter, their goal + stake → set my own goal + stake → Accept (pact active) / Decline (inviter notified)
+- Accepted after Monday → both partners see the `PactRulesBanner` on Home (Mon–Wed: this week counts; Thu–Sun: warm-up week, no stakes)
 
 **Pact Detail** `/pacts/[id]`
 - Current week calendar, streak, past weeks list (hit/missed per person)

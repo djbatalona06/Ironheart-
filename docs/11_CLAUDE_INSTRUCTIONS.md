@@ -47,7 +47,8 @@ These docs are the source of truth. If code and docs disagree, ask; don't guess.
 - Secrets live in `.env.local` only. Never commit them; never log them.
 - Camera: implement every confirmed iOS caveat in 06; mark device-unverified
   items with `// TODO: verify on device`.
-- Tests (Vitest): pact week math (timezones, DST, Mon–Wed first-week rule),
+- Tests (Vitest): pact week math (timezones, DST, Mon–Wed first-week rule,
+  late-sync credit date),
   calendar cell state, macro math, offline queue flush.
 
 ## Naming

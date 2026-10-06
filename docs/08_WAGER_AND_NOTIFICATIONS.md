@@ -25,6 +25,10 @@ Two kinds of stakes, both non-monetary:
 3. **First week**: if accepted Mon–Wed, the current week counts; if Thu–Sun,
    the first counted week is next Monday (the current week shows as a "warm-up",
    no stakes)
+4. **Rules pop-up**: any accept after Monday 00:00 (pact timezone) shows a short
+   `PactRulesBanner` to **both** partners, once per pact, dismissible:
+   - Mon–Wed: "This week counts: hit N days by Sunday or owe {stake}."
+   - Thu–Sun: "Warm-up week, no stakes. Your pact starts Monday."
 
 ### Live Updates
 - Logging a workout → `partner_checkin` notification to each active partner
@@ -48,7 +52,7 @@ hit, carries goals forward, sends `week_result` to both. Idempotent.
 | Both miss | Each owes their own stake to the other (2 rows) |
 | Partner ends pact mid-week | Current week not scored; existing ledger stays visible read-only |
 | Account deleted | Pacts end; partner notified; ledger rows deleted with the account |
-| Workout logged offline | Counts by `started_at`, so late sync still counts if it lands before close. If it arrives after close, the closed week isn't re-scored (shown as a "late" dot) |
+| Workout synced late (offline) | Synced before its week closes → counts on its `started_at` day. Synced **after** close (1 second or several days late) → closed week is **not** re-scored; the workout counts as a trained day on the **day it synced**, in the open week (cell shows a "late sync" marker). History keeps the real date. Never counts twice |
 | Backdated workout | Allowed only within the current open week |
 | Travel / timezone change | Pact timezone is fixed; editable in pact settings (applies next week) |
 

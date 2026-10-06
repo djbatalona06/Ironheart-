@@ -121,10 +121,16 @@ created_at timestamptz
 - Both missed → each owes the other their own stake (two rows)
 
 ### Calendar computation (no table)
-A day counts for a user when they have ≥1 workout whose `started_at`, converted
-to the partnership timezone, falls on that date. A day is verified when that
+Each workout gets one **credit date** (partnership timezone):
+- `started_at`'s date, if `created_at` ≤ the close of `started_at`'s week
+- otherwise `created_at`'s date (late sync → credited to the open week; the
+  closed week is never re-scored)
+
+`created_at` is set by the server (`default now()`), never sent by the client,
+so it equals the sync time. A day counts for a user when ≥1 workout is credited
+to it. A day is verified when that
 workout has a `media` row with `is_checkin = true`. SQL view:
-`pact_week_days(partnership_id, week_start)` → `(day date, user_id, trained bool, verified bool)`.
+`pact_week_days(partnership_id, week_start)` → `(day date, user_id, trained bool, verified bool, late bool)`.
 
 ### close_weeks() — `pg_cron` hourly, `security definer`
 For each active partnership where now() in its timezone ≥ next Monday 00:00 and the

@@ -54,6 +54,7 @@ One row per pact, Mon–Sun (week start = Monday, pact timezone).
 | none | `--border` | No one / rest / future day (future = outlined only) |
 | today | any of the above + gold ring | |
 | verified | small camera dot bottom-right | A photo is attached to that day's workout |
+| late | small clock mark top-right | Day was credited by a late-synced workout from a closed week |
 
 - **Header**: partner avatar + name, pills `You 3/4` and `Alex 2/4` (mono numbers).
   Pill turns `--success` when that person's goal is met.
@@ -64,6 +65,11 @@ One row per pact, Mon–Sun (week start = Monday, pact timezone).
 - **A11y**: each cell has `aria-label` like "Wednesday: you and Alex trained,
   verified". Colors are never the only signal: cells also carry an initial
   ("Y", "A", or both) at small size.
+
+## Key Component: `PactRulesBanner`
+Slim gold-bordered banner at the top of Home (and the pact sheet) after a
+mid-week accept. One line of rules text + "Got it" (dismissal stored per pact in
+localStorage). Copy is in `08_WAGER_AND_NOTIFICATIONS.md` → Create / Accept.
 
 ## Other Components
 - `Button` variants: gold, ghost, danger
