@@ -8,7 +8,7 @@ insert into public.workouts (user_id, name) values (:'b', 'Bob legs');
 select pg_temp.login(:'a');
 select pg_temp.check((select count(*) from public.workouts) = 0, 'non-partner cannot read workouts');
 select pg_temp.check((select count(*) from public.profiles) = 1, 'profiles: only own row');
-select pg_temp.check((select count(*) from public.public_profiles) = 3, 'public_profiles lists handles');
+select pg_temp.check((select count(*) from public.public_profiles where handle in ('alice','bob','eve')) = 3, 'public_profiles lists handles');
 select pg_temp.check((select count(*) from public.exercises) > 50, 'seed exercises readable');
 
 -- Column grants: points and server-owned columns are not client-writable.

@@ -577,7 +577,13 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "award_points":
+            "ai_record":
+{ Args: { "uid": string,"used": number }; Returns: undefined
+                           },
+"ai_take":
+{ Args: { "food": boolean,"uid": string }; Returns: string
+                           },
+"award_points":
 { Args: { "delta": number,"ref": string,"uid": string,"why": string }; Returns: undefined
                            },
 "close_weeks":
