@@ -1,0 +1,46 @@
+{
+  "name": "ironheart",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:db": "scripts/test-db.sh",
+    "e2e": "node e2e/smoke.mjs && node e2e/core-loop.mjs && node e2e/generator.mjs && node e2e/camera-nutrition.mjs && node e2e/challenges.mjs && node e2e/security.mjs && node e2e/pwa.mjs",
+    "gen:types": "supabase gen types typescript --local > lib/supabase/types.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.2",
+    "browser-image-compression": "^2.0.2",
+    "canvas-confetti": "^1.9.4",
+    "dexie": "^4.4.6",
+    "docx": "^9.8.1",
+    "exceljs": "^4.4.0",
+    "lucide-react": "^1.52.0",
+    "next": "16.3.8",
+    "openai": "^7.28.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "playwright-core": "^1.56.1",
+    "supabase": "^2.119.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5.0.3"
+  }
+}
