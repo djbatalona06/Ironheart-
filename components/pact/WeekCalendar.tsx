@@ -7,7 +7,6 @@ import { Camera, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { Sheet } from "@/components/ui/Sheet";
 import type { Cell } from "@/lib/pacts/cells";
 import type { PactWeek } from "@/lib/pacts/load";
-import { supabaseBrowser } from "@/lib/supabase/client";
 
 const FILL: Record<Cell["state"], string> = {
   both: "bg-gold text-bg border-gold",
@@ -39,6 +38,7 @@ export function WeekCalendar({ week, me, offset }: { week: PactWeek; me: string;
   async function openDay(c: Cell) {
     setDay(c); setList(null);
     if (!c.workoutIds.length) return setList([]);
+    const { supabaseBrowser } = await import("@/lib/supabase/client");
     const { data } = await supabaseBrowser().from("workouts").select("id, name, user_id, started_at").in("id", c.workoutIds);
     setList(data ?? []);
   }

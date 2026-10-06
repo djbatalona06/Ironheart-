@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase/client";
 
 const COOLDOWN = 60;
 
@@ -21,6 +20,7 @@ export function LoginForm() {
   async function sendLink(e?: React.FormEvent) {
     e?.preventDefault();
     setError(null);
+    const { supabaseBrowser } = await import("@/lib/supabase/client"); // lazy: keeps first load small
     const { error } = await supabaseBrowser().auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo() },
@@ -31,6 +31,7 @@ export function LoginForm() {
   }
 
   async function oauth(provider: "google" | "github") {
+    const { supabaseBrowser } = await import("@/lib/supabase/client");
     const { error } = await supabaseBrowser().auth.signInWithOAuth({
       provider,
       options: { redirectTo: redirectTo() },

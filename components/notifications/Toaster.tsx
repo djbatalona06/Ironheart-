@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { confetti, describe } from "@/lib/notifications/format";
-import { subscribeAuthed, supabaseBrowser } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/types";
 
 type Toast = { id: string; text: string; href: string };
@@ -15,20 +14,27 @@ export function Toaster({ me }: { me: string }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    const sb = supabaseBrowser();
     let poll: ReturnType<typeof setInterval> | undefined;
-    const ch = subscribeAuthed(sb.channel(`notify:${me}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${me}` }, (e) => {
-        const n = e.new as Tables<"notifications">;
-        const d = describe(n.type, n.payload, me);
-        setToasts((t) => [...t.slice(-2), { id: n.id, text: d.text, href: d.href }]);
-        setTimeout(() => setToasts((t) => t.filter((x) => x.id !== n.id)), 5000);
-        if (d.celebrate) void confetti();
-        router.refresh();
-      }), (status) => {
+    let cleanup = () => {};
+    let cancelled = false;
+    // supabase-js is imported after hydration to keep it out of the first-load bundle.
+    void import("@/lib/supabase/client").then(({ subscribeAuthed, supabaseBrowser }) => {
+      if (cancelled) return;
+      const sb = supabaseBrowser();
+      const ch = subscribeAuthed(sb.channel(`notify:${me}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${me}` }, (e) => {
+          const n = e.new as Tables<"notifications">;
+          const d = describe(n.type, n.payload, me);
+          setToasts((t) => [...t.slice(-2), { id: n.id, text: d.text, href: d.href }]);
+          setTimeout(() => setToasts((t) => t.filter((x) => x.id !== n.id)), 5000);
+          if (d.celebrate) void confetti();
+          router.refresh();
+        }), (status) => {
         if ((status === "CHANNEL_ERROR" || status === "TIMED_OUT") && !poll) poll = setInterval(() => router.refresh(), 30_000);
       });
-    return () => { clearInterval(poll); void sb.removeChannel(ch); };
+      cleanup = () => void sb.removeChannel(ch);
+    });
+    return () => { cancelled = true; clearInterval(poll); cleanup(); };
   }, [me, router]);
 
   return (

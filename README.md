@@ -1,14 +1,23 @@
 # IRONHEART
 
-A black-and-gold, iOS-installable fitness PWA built around weekly partner pacts:
-pair with someone, each set a weekly workout goal and a stake, and watch a shared
-color-coded calendar fill in. Whoever misses owes the stake. Workout logging, a
-template program generator with .docx/.xlsx export, camera check-ins, nutrition
-tracking, challenges, and virtual gifts feed the loop.
+A black-and-gold, iOS-installable fitness PWA built around **weekly partner pacts**.
+Pair with someone, each set a weekly workout goal and a stake ("buy dinner"), and
+watch a shared color-coded calendar fill in. The week closes every Monday; whoever
+missed owes the stake. Workout logging (offline-first), a template program generator
+with .docx/.xlsx export, an AI training bot, photo check-ins, nutrition tracking,
+challenges, virtual gifts and live notifications all feed the loop.
 
-Specs live in [`/docs`](docs). Start with
-[`00_PROJECT_BRIEF.md`](docs/00_PROJECT_BRIEF.md) and
-[`12_ROADMAP.md`](docs/12_ROADMAP.md).
+**Run it:** [`SETUP.md`](SETUP.md) (Supabase + Vercel + iPhone install, about 30 minutes).
+**Specs:** [`docs/`](docs). Start with [`00_PROJECT_BRIEF.md`](docs/00_PROJECT_BRIEF.md).
+**Build log:** `PHASE_1_NOTES.md` … `PHASE_6_NOTES.md` (what was built, deviations, and a "read this to learn" pointer each).
 
-Stack: Next.js · TypeScript · Tailwind · shadcn/ui · Supabase (Auth, Postgres,
-Storage, Realtime) · Serwist · Dexie · Vercel.
+Stack: Next.js 16 · React 19 · TypeScript · Tailwind v4 · Supabase (Auth, Postgres + RLS,
+Storage, Realtime, pg_cron) · Dexie (IndexedDB) · OpenAI Responses API · Vercel.
+
+| Check | Command |
+|---|---|
+| Types | `npm run typecheck` |
+| Lint | `npm run lint` |
+| Unit (Vitest) | `npm test` |
+| Database (RLS, weekly close, quotas, challenges) | `npm run test:db` |
+| End-to-end (Playwright, 73 checks) | `npm run e2e`, see [`e2e/README.md`](e2e/README.md) |

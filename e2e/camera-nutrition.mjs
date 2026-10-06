@@ -1,4 +1,4 @@
-import { BASE, browser, check, logWorkout, onboard, signIn, sql } from "./lib.mjs";
+import { BASE, browser, check, logWorkout, onboard, signIn, sql, seen } from "./lib.mjs";
 import { startMockOpenAI } from "./mock-openai.mjs";
 
 const mock = await startMockOpenAI();
@@ -38,7 +38,7 @@ await page.fill('input[aria-label="Caption"]', "Squat depth check");
 await page.selectOption("select", "");
 await page.click("button:has-text('Save')");
 await page.waitForURL("**/profile");
-check(await page.isVisible("text=Squat depth check"), "clip + caption on profile");
+check(await seen(page, "text=Squat depth check"), "clip + caption on profile");
 check(await page.locator("figure video[src^='http']").count() === 1, "clip plays from signed URL");
 check(sql(`select duration_seconds between 1 and 15 from media where user_id = '${uid}' and type = 'video'`) === "t", "clip duration recorded");
 
@@ -58,7 +58,7 @@ check(paths.split(",").length === 2 && !paths.includes("local:"), `offline photo
 
 // ---- nutrition ----
 await page.goto(`${BASE}/nutrition`);
-check(await page.isVisible("text=/\\/ 160g/"), "protein goal from onboarding (2 g/kg)");
+check(await seen(page, "text=/\\/ 160g/"), "protein goal from onboarding (2 g/kg)");
 await page.click('a[aria-label="Add to breakfast"]');
 await page.fill('input[aria-label="Search foods"]', "egg, wh");
 await page.click("text=Egg, whole");
@@ -66,7 +66,7 @@ await page.click("button:has-text('2×')");
 await page.click("text=Log to breakfast");
 await page.waitForURL(/\/nutrition$/);
 await page.waitForSelector("text=Egg, whole");
-check(await page.isVisible("text=144"), "2 eggs = 144 kcal logged");
+check(await seen(page, "text=144"), "2 eggs = 144 kcal logged");
 
 // AI estimate (mock) → log
 await page.click('a[aria-label="Add to lunch"]');
@@ -102,7 +102,7 @@ check(sql(`select count(*) from points_ledger where user_id = '${uid}' and reaso
 await page.click("button:has-text('Test Mega Shake')");
 await page.fill('input[aria-label="Food name"]', "Mega Shake");
 await page.click("dialog button:has-text('Save')");
-await page.waitForSelector("text=Mega Shake");
+await page.waitForFunction(() => !document.body.innerText.includes("Test Mega Shake"));
 await page.click("button:has-text('Mega Shake')");
 await page.click("dialog button:has-text('Delete')");
 await page.waitForFunction(() => !document.body.innerText.includes("Mega Shake"));
@@ -115,6 +115,6 @@ await page.uncheck('input[name="nutrition_enabled"]');
 await page.click("form button:has-text('Save')");
 await page.waitForSelector("text=Saved.");
 await page.goto(`${BASE}/nutrition`);
-check(await page.isVisible("text=Nutrition is off"), "nutrition can be turned off");
+check(await seen(page, "text=Nutrition is off"), "nutrition can be turned off");
 await b.close();
 mock.close();

@@ -3,6 +3,11 @@
 > Re-verify every free-tier number at supabase.com/pricing and
 > vercel.com/pricing before Phase 1. Limits change; this doc may be stale.
 
+> **As built (Oct 2026):** Next.js 16.3 (Turbopack, `proxy.ts`), React 19.2, Tailwind v4.
+> Deliberately skipped (add when needed): shadcn/ui (4 CSS utilities + native `<dialog>` cover it),
+> TanStack Query (Server Components + `router.refresh()`), Zustand, React Hook Form, Recharts,
+> Serwist (hand-written `public/sw.js`). See `PHASE_*_NOTES.md` for the reasoning.
+
 ## Frontend
 - **Next.js** (latest stable, App Router): SSR, route handlers, PWA
 - **TypeScript** (strict mode, no `any`)
@@ -47,7 +52,7 @@
 - Native `<a download>` with `URL.createObjectURL` (no file-saver)
 
 ## PWA
-- `@serwist/next`: service worker + precache + runtime caching
+- Native service worker (`public/sw.js`, no build step): precache + runtime caching
 - `app/manifest.ts`: Next.js built-in manifest
 - `Dexie.js`: IndexedDB for offline workout/nutrition queue + local media fallback
 

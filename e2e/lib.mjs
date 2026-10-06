@@ -74,3 +74,6 @@ export function realtimeReady(page, name) {
     if (msg.includes("Subscribed to PostgreSQL") && msg.includes(name)) resolve();
   })));
 }
+
+/** Waits (up to 8s) for a selector to be visible — pages stream a loading skeleton first. */
+export const seen = (page, selector) => page.waitForSelector(selector, { timeout: 8000 }).then(() => true, () => false);

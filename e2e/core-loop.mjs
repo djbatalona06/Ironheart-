@@ -1,4 +1,4 @@
-import { BASE, browser, check, logWorkout, onboard, signIn, sql } from "./lib.mjs";
+import { BASE, browser, check, logWorkout, onboard, signIn, sql, seen } from "./lib.mjs";
 
 const b = await browser();
 const s = Date.now().toString(36);
@@ -14,19 +14,19 @@ await alice.fill('input[name="handle"]', `bob_${s}`);
 await alice.fill('input[name="goal"]', "3");
 await alice.click("text=Send invite");
 await alice.waitForURL("**/home?invited=1");
-check(await alice.isVisible("text=/Waiting for .* to accept/"), "alice sees pending invite");
+check(await seen(alice, "text=/Waiting for .* to accept/"), "alice sees pending invite");
 
 // Bob accepts from Home
 await bob.goto(`${BASE}/home`);
-check(await bob.isVisible("text=/challenged you/"), "bob sees invite card");
+check(await seen(bob, "text=/challenged you/"), "bob sees invite card");
 await bob.fill('form input[name="stake"]', "Do the dishes");
 await bob.click("button:has-text('Accept')");
 await bob.waitForSelector('section[aria-label="Pact with Alice"]');
-check(await bob.isVisible("text=/This week counts|Warm-up week/"), "rules banner after accept");
+check(await seen(bob, "text=/This week counts|Warm-up week/"), "rules banner after accept");
 await bob.click("text=Got it");
 await bob.reload();
 check(!(await bob.isVisible("text=/This week counts|Warm-up week/")), "banner stays dismissed");
-check(await bob.isVisible('section[aria-label="Pact with Alice"]'), "bob's calendar renders");
+check(await seen(bob, 'section[aria-label="Pact with Alice"]'), "bob's calendar renders");
 
 // Alice logs a workout → Bob's calendar shows a partner cell (blue) today
 await logWorkout(alice, "Push day");
@@ -48,7 +48,7 @@ await bob.waitForSelector("a:has-text('Offline legs')", { timeout: 15000 });
 check(true, "queued workout synced after reconnect");
 await bob.goto(`${BASE}/home`);
 check((await bob.locator('li button.ring-2').getAttribute("class")).includes("bg-gold"), "both trained → gold cell");
-check(await bob.isVisible("text=/You 1\\//"), "bob's pill counts the synced day");
+check(await seen(bob, "text=/You 1\\//"), "bob's pill counts the synced day");
 
 // Notifications: alice got pact_accepted + partner_checkin
 const n = sql(`select string_agg(type, ',' order by type) from notifications n join profiles p on p.id = n.user_id where p.handle = 'alice_${s}'`);
@@ -59,7 +59,7 @@ const pid = sql(`select p.id from partnerships p join profiles a on a.id = p.use
 sql(`insert into stake_ledger (partnership_id, debtor_id, creditor_id, stake, week_start)
      select id, user_b, user_a, 'Do the dishes', '2026-09-28' from partnerships where id = '${pid}'`);
 await bob.goto(`${BASE}/pacts/${pid}`);
-check(await bob.isVisible("text=/You owe/") && !(await bob.isVisible("text=Settle 1")), "debtor sees debt, no settle button");
+check(await seen(bob, "text=/You owe/") && !(await bob.isVisible("text=Settle 1")), "debtor sees debt, no settle button");
 await alice.goto(`${BASE}/pacts/${pid}`);
 await alice.click("text=Settle 1");
 await alice.waitForSelector("text=All square");

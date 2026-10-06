@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Inter, JetBrains_Mono } from "next/font/google";
+import { Pwa } from "@/components/pwa/Pwa";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   title: "IRONHEART",
   description: "Train with a partner. Hit your week or owe the stake.",
   appleWebApp: { capable: true, title: "IRONHEART", statusBarStyle: "black-translucent" },
+  icons: { icon: "/icons/192.png", apple: "/icons/180.png" },
 };
 
 export const viewport: Viewport = {
@@ -22,7 +24,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} ${anton.variable} ${mono.variable} antialiased`}>
-      <body className="min-h-dvh font-sans">{children}</body>
+      <body className="min-h-dvh font-sans">{children}<Pwa /></body>
     </html>
   );
 }

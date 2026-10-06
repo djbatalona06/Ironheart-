@@ -31,7 +31,7 @@
 - Realtime notifications, toasts, bell badge, notifications page
 
 ## Phase 6: PWA + Polish (Days 12–13)
-- Serwist service worker, manifest, icons, splash screens
+- Service worker (`public/sw.js`), manifest, icons
 - iOS install banner, camera permission instructions
 - Empty states, haptics, confetti, reduced-motion
 - Lighthouse audit; free-tier stress test (fill storage, verify fallback)

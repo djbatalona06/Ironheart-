@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { clearCachedPages } from "@/components/pwa/Pwa";
 import { MediaThumb } from "@/components/workout/MediaThumb";
 import { db, type LocalMedia } from "@/lib/db";
 import type { Tables } from "@/lib/supabase/types";
@@ -72,9 +73,9 @@ export function LocalMediaPanel({ profileMedia }: { profileMedia: { id: string; 
 export function DangerZone({ email }: { email: string }) {
   return (
     <section className="space-y-2">
-      <form action={signOut}><button className="btn-ghost w-full">Sign out of {email}</button></form>
+      <form action={signOut} onSubmit={clearCachedPages}><button className="btn-ghost w-full">Sign out of {email}</button></form>
       <button className="btn-ghost w-full text-danger" onClick={async () => {
-        if (confirm("Delete your account and all your data? Active pacts end and partners are notified. This can't be undone.")) await deleteAccount();
+        if (confirm("Delete your account and all your data? Active pacts end and partners are notified. This can't be undone.")) { clearCachedPages(); await deleteAccount(); }
       }}>Delete account</button>
     </section>
   );

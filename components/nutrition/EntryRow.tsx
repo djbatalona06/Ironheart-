@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
-import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/types";
 
 type Log = Pick<Tables<"nutrition_logs">, "id" | "food_name" | "calories" | "protein_g" | "carbs_g" | "fat_g" | "serving_size" | "meal_type">;
@@ -16,6 +15,7 @@ export function EntryRow({ log }: { log: Log }) {
   const [error, setError] = useState<string | null>(null);
 
   async function run(op: "save" | "delete") {
+    const { supabaseBrowser } = await import("@/lib/supabase/client");
     const t = supabaseBrowser().from("nutrition_logs");
     const { error } = op === "delete" ? await t.delete().eq("id", log.id)
       : await t.update({ food_name: v.food_name, calories: v.calories, protein_g: v.protein_g, carbs_g: v.carbs_g, fat_g: v.fat_g, meal_type: v.meal_type }).eq("id", log.id);

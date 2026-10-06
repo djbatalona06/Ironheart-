@@ -1,4 +1,4 @@
-import { BASE, browser, check, logWorkout, onboard, realtimeReady, signIn, sql } from "./lib.mjs";
+import { BASE, browser, check, logWorkout, onboard, realtimeReady, signIn, sql, seen } from "./lib.mjs";
 
 const b = await browser();
 const s = Date.now().toString(36);
@@ -54,22 +54,22 @@ check(sql(`select points from profiles where handle = 'ca_${s}'`) === "20", "10 
 await bob.waitForSelector("text=/sent you a Gold Star/", { timeout: 10000 });
 check(true, "bob gets gift toast");
 await bob.goto(`${BASE}/profile`);
-check(await bob.isVisible("li:has-text('Gold Star')"), "gift shows on bob's profile");
+check(await seen(bob, "li:has-text('Gold Star')"), "gift shows on bob's profile");
 
 // Close: Alice wins 1–0
 sql(`update wagers set starts_at = now() - interval '1 day', ends_at = now() - interval '1 second' where id = '${wid}'`);
 sql(`select recompute_challenges()`);
 await alice.goto(`${BASE}/wagers?tab=challenges`);
-check(await alice.isVisible("text=WON"), "alice sees WON");
+check(await seen(alice, "text=WON"), "alice sees WON");
 await bob.goto(`${BASE}/wagers?tab=challenges`);
-check(await bob.isVisible("text=LOST"), "bob sees LOST");
+check(await seen(bob, "text=LOST"), "bob sees LOST");
 check(sql(`select points from profiles where handle = 'ca_${s}'`) === "70", "winner +50 (30 set − 10 gift + 50 win)");
 
 await alice.goto(`${BASE}/notifications`);
-check(await alice.isVisible("text=/You won “Week warrior”/"), "win notification text");
+check(await seen(alice, "text=/You won “Week warrior”/"), "win notification text");
 await alice.click("text=Mark all read");
 await alice.waitForSelector("text=Mark all read", { state: "detached" });
-check(await alice.isVisible('a[aria-label="Notifications, 0 unread"]'), "badge cleared");
+check(await seen(alice, 'a[aria-label="Notifications, 0 unread"]'), "badge cleared");
 await alice.screenshot({ path: "e2e/out/notifications.png" });
 await bob.goto(`${BASE}/wagers/challenges/${wid}`);
 await bob.screenshot({ path: "e2e/out/challenge.png", fullPage: true });

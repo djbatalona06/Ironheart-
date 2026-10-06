@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { BASE, browser, check, onboard, signIn, sql } from "./lib.mjs";
+import { BASE, browser, check, onboard, signIn, sql, seen } from "./lib.mjs";
 import { calls, startMockOpenAI } from "./mock-openai.mjs";
 
 const mock = await startMockOpenAI();
@@ -32,7 +32,7 @@ check((await page.locator("text=UP NEXT").count()) === 1, "Up next section shows
 
 await page.click("section a >> nth=0");
 await page.waitForURL("**/workouts/new?planned=*");
-check(await page.isVisible("text=Planned workout") && await page.isVisible("text=Barbell Bench Press"), "planned workout opens in logger with exercises");
+check(await seen(page, "text=Planned workout") && await seen(page, "text=Barbell Bench Press"), "planned workout opens in logger with exercises");
 check((await page.inputValue('input[aria-label="Set 1 reps"]')) === "6", "reps target prefilled");
 await page.fill('input[aria-label="Set 1 weight"] >> nth=0', "90");
 await page.click('button[aria-label="Complete set 1"] >> nth=0');

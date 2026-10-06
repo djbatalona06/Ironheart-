@@ -25,18 +25,16 @@ export default function manifest(): MetadataRoute.Manifest {
 }
 ```
 
-## Service Worker (`@serwist/next`)
-`next-pwa` is unmaintained and doesn't work with the App Router.
-```ts
-// next.config.ts
-import withSerwistInit from '@serwist/next';
-const withSerwist = withSerwistInit({
-  swSrc: 'app/sw.ts',
-  swDest: 'public/sw.js',
-  disable: process.env.NODE_ENV === 'development',
-});
-export default withSerwist({ /* next config */ });
-```
+## Service Worker (`public/sw.js`, hand-written)
+`next-pwa` is unmaintained, and Serwist needs a route-handler workaround under
+Turbopack (Next 16's default bundler). The app's caching needs fit in ~70 lines of plain JS:
+- `/_next/static/*` → cache-first (hashed, immutable)
+- page navigations → network-first (3s timeout) → cached page → `/offline`
+- RSC payloads (client navigations) → network-first in a **separate** cache from HTML
+- same-origin images → cache-first (100 entries)
+- Supabase / `/api` / `/auth` → never cached (private, always fresh)
+- Sign-out posts `clear-pages` so the next person on the device can't see cached pages
+Registered by `components/pwa/Pwa.tsx` in production only.
 
 ## iOS Head Tags (via Next `metadata` / `viewport` exports)
 - `appleWebApp: { capable: true, title: 'IRONHEART', statusBarStyle: 'black-translucent' }`

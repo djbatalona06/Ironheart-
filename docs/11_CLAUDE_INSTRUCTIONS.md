@@ -28,7 +28,7 @@ These docs are the source of truth. If code and docs disagree, ask; don't guess.
 8. Camera + check-ins (06)
 9. Nutrition (09)
 10. Challenges + gifts + notifications (08)
-11. PWA: Serwist, manifest, install banner, keepalive cron (07)
+11. PWA: service worker (`public/sw.js`), manifest, install banner, keepalive cron (07)
 12. Polish + audits
 
 ## Hard Rules
@@ -61,7 +61,7 @@ Conventional: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`
 ## When Unsure
 - Choose the simpler implementation
 - Leave a `// TODO:` comment explaining the tradeoff
-- Use only documented APIs for Next.js, Supabase (`@supabase/ssr`), Serwist, Dexie
+- Use only documented APIs for Next.js, Supabase (`@supabase/ssr`), Dexie; read `node_modules/next/dist/docs` first (Next 16 changed APIs)
 - If a free-tier limit would break a feature, build the fallback and document it
 
 ## Deliverable per Phase
