@@ -34,8 +34,10 @@ The Vercel connector in the build session didn't have permission to create proje
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable key |
    | `SUPABASE_SERVICE_ROLE_KEY` | service-role key (mark **Sensitive**) |
    | `CRON_SECRET` | any long random string (`openssl rand -hex 32`) |
-   | `OPENAI_API_KEY` | optional. Without it the bot/estimates say "not set up" |
-   | `OPENAI_MODEL` | optional, e.g. a current `-mini` model (default `gpt-5-mini`) |
+   | `AI_API_KEY` | optional. Without it (and without `OPENAI_API_KEY`) the bot/estimates say "not set up" |
+   | `AI_MODEL` | model name, e.g. `gpt-5-mini` or `deepseek-v4-flash`. **Required** when `AI_BASE_URL` is set |
+   | `AI_BASE_URL` | optional. Any OpenAI-compatible Responses API, e.g. `https://api.deepseek.com` |
+   | `OPENAI_API_KEY` / `OPENAI_MODEL` | still work as the fallback when the `AI_*` vars are unset |
 3. Deploy. Until the env vars exist, every page shows **Setup needed**. Vercel Hobby is non-commercial; upgrade before you charge money.
 4. The daily keepalive cron (`vercel.json`) calls `/api/health` with `CRON_SECRET` automatically, which stops the free Supabase project from pausing.
 

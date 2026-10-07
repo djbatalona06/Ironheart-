@@ -50,7 +50,8 @@ library. Be concise and direct, use gym terminology, no emojis.
 ```
 
 ### Limits
-- Model: `process.env.OPENAI_MODEL` (cheapest current "mini" tier)
+- Model: `AI_MODEL` (falls back to `OPENAI_MODEL`); provider via `AI_BASE_URL` (`lib/ai/provider.ts`).
+  Choose the cheapest model that passes `node scripts/ai-compare.mjs`.
 - No free tier: prepaid billing on the OpenAI account required
 - **Global**: 200 calls/day. **Per user**: 10/day (food estimates ≤ 5 of those)
 - Counted in `ai_usage` (upsert `calls + 1` before the call; reject if over)

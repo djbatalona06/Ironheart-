@@ -12,8 +12,6 @@ library. Be concise and direct, use gym terminology, no emojis.`;
 export const FOOD_SYSTEM = `Estimate calories and macros for the foods described. Use typical USDA-style values and
 standard portions when the amount is vague. Return one item per distinct food.`;
 
-export const MODEL = process.env.OPENAI_MODEL || "gpt-5-mini";
-
 // Route files may only export handlers, so the shared schema lives here.
 export const FoodEstimate = z.object({
   items: z.array(z.object({

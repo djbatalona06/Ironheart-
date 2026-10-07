@@ -7,7 +7,9 @@
 - **Export**: `.docx` (docx) and `.xlsx` (exceljs), both lazy-loaded client-side; bot replies export to `.docx`
 - **`/api/ai`**: OpenAI Responses API with the locked system prompt plus the last 30 days of training as context (≈4k tokens max), streamed replies, food estimates via strict JSON schema validated with Zod
 - **Budget caps in SQL** (`ai_take`, service-role only): 200/day global (advisory lock), 10/user/day, 5 food estimates/day; tokens recorded per user/day
-- If `OPENAI_API_KEY` is unset, the bot shows a "not set up" message instead of failing
+- If no AI key is set (`AI_API_KEY` or `OPENAI_API_KEY`), the bot shows a "not set up" message instead of failing
+- **Swappable provider** (`lib/ai/provider.ts`): `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` point the same `openai` SDK at OpenAI, DeepSeek, or a local Ollama. `OPENAI_*` still works. A custom `AI_BASE_URL` without `AI_MODEL` is treated as "not set up" so a wrong default model is never sent.
+- **`scripts/ai-compare.mjs`**: runs the same prompts through each provider and checks 10 food-estimate JSONs, 5 program JSONs, and 5 streamed chats (text + token usage). Exits 1 on any miss. Run it with your own keys before switching providers; it costs a few cents.
 
 ## Tests
 - SQL `03_ai.sql`: per-user, food and global caps; clients can't call `ai_take`
@@ -16,7 +18,7 @@
 
 ## Deviations
 - "Customize" lives on the preview itself (no separate step).
-- Model defaults to `gpt-5-mini` when `OPENAI_MODEL` is unset. Set it explicitly in production.
+- Model defaults to `gpt-5-mini` when no model var is set and no custom base URL is used. Set it explicitly in production.
 
 ## Free-tier / cost notes
 - Doc generation is 100% client-side (no function time).
