@@ -4,11 +4,21 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { macroGoals } from "@/lib/nutrition/goals";
 import { requireUser } from "@/lib/supabase/server";
+import { SURVEY_QUESTIONS, type SurveyKey } from "./survey";
 
 const num = (min: number, max: number) =>
   z.preprocess((v) => (v === "" || v == null ? undefined : Number(v)), z.number().min(min).max(max).optional());
 
+// Every survey answer is optional; an unknown or missing value becomes undefined.
+// Values come from SURVEY_QUESTIONS so the form and the check can't drift apart.
+const choice = (key: SurveyKey) =>
+  z.enum(SURVEY_QUESTIONS.find((q) => q.key === key)!.options.map(([v]) => v) as [string, ...string[]])
+    .optional().catch(undefined);
+
 const Schema = z.object({
+  days_per_week: choice("days_per_week"),
+  experience: choice("experience"),
+  obstacle: choice("obstacle"),
   name: z.string().trim().min(1).max(60),
   handle: z.string().trim().toLowerCase().regex(/^[a-z0-9_]{3,20}$/),
   goal: z.enum(["muscle", "fat_loss", "strength", "endurance"]),
@@ -29,6 +39,8 @@ export async function finishOnboarding(_: OnboardState, form: FormData): Promise
   const d = parsed.data;
   const { supabase, user } = await requireUser();
 
+  const answers = Object.fromEntries(SURVEY_QUESTIONS.flatMap((q) => (d[q.key] ? [[q.key, d[q.key]]] : [])));
+
   const hasStats = d.weight_kg && d.height_cm && d.birth_year && d.sex && d.activity_level;
   const goals = hasStats
     ? macroGoals({
@@ -46,6 +58,7 @@ export async function finishOnboarding(_: OnboardState, form: FormData): Promise
       kcal_goal: goals?.kcal ?? null, protein_g_goal: goals?.protein ?? null,
       carbs_g_goal: goals?.carbs ?? null, fat_g_goal: goals?.fat ?? null,
       nutrition_enabled: d.nutrition_enabled === "yes",
+      survey: Object.keys(answers).length ? answers : null,
       onboarded: true,
     })
     .eq("id", user.id);
