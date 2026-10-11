@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 
-const PUBLIC = ["/login", "/auth", "/api/health", "/setup", "/offline"];
+const PUBLIC = ["/login", "/auth", "/api/auth/magic-link", "/api/health", "/setup", "/offline"];
 
 // Refreshes the Supabase session cookie on every request and does an
 // optimistic auth redirect. Real authorization is RLS + requireUser().

@@ -583,6 +583,9 @@ isOneToOne: false
 "ai_take":
 { Args: { "food": boolean,"uid": string }; Returns: string
                            },
+"take_magic_link_slot":
+{ Args: { "p_email_hash": string }; Returns: number
+                           },
 "award_points":
 { Args: { "delta": number,"ref": string,"uid": string,"why": string }; Returns: undefined
                            },

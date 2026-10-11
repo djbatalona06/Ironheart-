@@ -20,8 +20,9 @@ You need about 30 minutes. Everything here is on free tiers.
    - Email: on (magic link).
    - Google: create an OAuth client in Google Cloud Console. Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`.
    - GitHub: GitHub → Settings → Developer settings → OAuth Apps, same callback URL.
-7. **Authentication → Emails → SMTP**: use Resend (free, about 100 emails/day). The built-in sender is limited to a few emails per hour.
-8. **Project Settings → API**: copy the URL, the anon/publishable key, and the service-role key (keep that one secret).
+7. **Authentication → Rate Limits**: the app allows at most 5 magic-link send attempts per email in a rolling 10-minute window. Use custom SMTP and set the project email-send limit to at least 30/hour and OTP email frequency to 1 second so Supabase Auth does not impose a stricter limit first.
+8. **Authentication → Emails → SMTP**: configure a delivery provider such as Resend (free tier about 100 emails/day). The built-in sender is limited to a few emails per hour and cannot support the app's five-request limit.
+9. **Project Settings → API**: copy the URL, the anon/publishable key, and the service-role key (keep that one secret).
 
 ## 2. Vercel (hosting)
 The Vercel connector in the build session didn't have permission to create projects in the `vertex-supply` team, so do this in the dashboard:
@@ -45,6 +46,35 @@ The Vercel connector in the build session didn't have permission to create proje
 3. Invite your partner from Home → **Start a pact**.
 
 ## Local development
+
+On Windows, start Docker Desktop first, then from the project folder run:
+
+```powershell
+# Optional: uncomment a provider's pair and replace both placeholders.
+# $env:SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID = "<Google OAuth client ID>"
+# $env:SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET = "<Google OAuth client secret>"
+# $env:SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID = "<GitHub OAuth client ID>"
+# $env:SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET = "<GitHub OAuth client secret>"
+.\scripts\dev.ps1
+```
+
+The script starts the local Supabase stack, applies migrations and seed data,
+updates the ignored `.env.local` with the local API URL and keys, then starts
+Next.js. Leave provider values you do not have unset; email sign-in and the
+login screen remain available. A provider is enabled automatically only when
+both its client ID and secret are set. Local magic-link emails are captured by
+Supabase Inbucket (see the local service URLs printed by `npx supabase status`).
+
+For Google/GitHub OAuth, use
+`http://127.0.0.1:54321/auth/v1/callback` as the provider's authorized callback
+URL. Supabase redirects back to `http://localhost:3000/auth/callback`.
+
+If Docker reports that its Linux engine is unavailable, open Docker Desktop,
+wait for the engine to become ready, and rerun the script. It stops rather than
+starting the app against an unconfigured or remote database.
+
+For macOS/Linux, the manual commands are:
+
 ```bash
 npm install
 npx supabase start            # Docker; prints local URL + keys
@@ -52,6 +82,23 @@ cp .env.example .env.local    # fill NEXT_PUBLIC_SUPABASE_URL / ANON_KEY / SERVI
 npm run dev                   # http://localhost:3000
 ```
 Checks: `npm run typecheck`, `npm run lint`, `npm test` (Vitest), `npm run test:db` (SQL tests against the local stack), `npm run e2e` (see `e2e/README.md`).
+
+The local Supabase config disables Google and GitHub by default so the stack can
+start without OAuth credentials. To use either provider when starting Supabase
+manually, set its enabled flag and both credentials in the shell first:
+
+```text
+SUPABASE_AUTH_EXTERNAL_GOOGLE_ENABLED=true
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID
+SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET
+SUPABASE_AUTH_EXTERNAL_GITHUB_ENABLED=true
+SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID
+SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET
+```
+
+The login screen offers both providers, but an OAuth login succeeds only after
+the matching credentials are configured in local Supabase or in the hosted
+project's Authentication → Providers settings.
 
 ## Free-tier watch list
 - Storage 1 GB: clips are the big cost (~11 MB each). Photos are compressed to <500 KB.

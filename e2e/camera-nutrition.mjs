@@ -111,6 +111,7 @@ await page.screenshot({ path: "e2e/out/nutrition.png", fullPage: true });
 
 // Turn nutrition off
 await page.goto(`${BASE}/profile`);
+await page.screenshot({ path: "e2e/out/profile.png", fullPage: true });
 await page.uncheck('input[name="nutrition_enabled"]');
 await page.click("form button:has-text('Save')");
 await page.waitForSelector("text=Saved.");

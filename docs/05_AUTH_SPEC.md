@@ -11,9 +11,15 @@ all three providers natively.
 2. **Google OAuth**
 3. **GitHub OAuth**
 
-## Rate Limits to Design Around
-- Magic link: ~60s between requests per email → Resend button with 60s cooldown
-- If the email doesn't arrive, show "Use Google or GitHub instead"
+## Rate Limits
+- The server allows at most 5 magic-link send attempts per normalized email
+  address in a rolling 10-minute window. The counter stores an HMAC of the
+  email, not the address itself, and its Postgres function is service-role only.
+- Supabase Auth must be configured with custom SMTP, an email-send limit of at
+  least 30/hour, and a 1-second OTP email frequency so provider limits do not
+  undercut the app's cap.
+- The login form displays a retry message when the app-level cap is reached.
+  Google and GitHub remain alternate sign-in methods.
 
 ## Implementation (`@supabase/ssr`)
 - `lib/supabase/client.ts`: `createBrowserClient`
@@ -49,8 +55,16 @@ OPENAI_API_KEY=
 OPENAI_MODEL=
 CRON_SECRET=                    # Vercel cron auth for /api/health
 ```
-Google/GitHub client secrets and Resend SMTP credentials live in the Supabase
-dashboard, not in the app.
+Hosted Google/GitHub client secrets and SMTP credentials live in the Supabase
+dashboard. For local development, Supabase reads the optional
+`SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET`,
+`SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID`, and
+`SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET` variables before the stack starts. Local
+providers default to disabled; the Windows dev script enables each provider
+only when both its client ID and secret are present. When starting Supabase
+manually, also set the corresponding
+`SUPABASE_AUTH_EXTERNAL_GOOGLE_ENABLED=true` or
+`SUPABASE_AUTH_EXTERNAL_GITHUB_ENABLED=true` variable.
 
 ## Sessions
 - Cookie-based, refreshed by middleware

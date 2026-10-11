@@ -2,8 +2,10 @@
 // Browser: CHROME_PATH or the container default.
 import { createClient } from "@supabase/supabase-js";
 import { chromium } from "playwright-core";
+import { mkdirSync } from "node:fs";
 
 export const BASE = process.env.BASE_URL ?? "http://localhost:3000";
+mkdirSync(new URL("./out/", import.meta.url), { recursive: true });
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });

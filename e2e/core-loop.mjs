@@ -10,6 +10,7 @@ await onboard(bob, { name: "Bob", handle: `bob_${s}` });
 
 // Alice invites Bob
 await alice.goto(`${BASE}/pacts/new`);
+await alice.screenshot({ path: "e2e/out/pact-setup.png", fullPage: true });
 await alice.fill('input[name="handle"]', `bob_${s}`);
 await alice.fill('input[name="goal"]', "3");
 await alice.click("text=Send invite");
@@ -33,6 +34,7 @@ await logWorkout(alice, "Push day");
 await alice.goto(`${BASE}/workouts`);
 await alice.waitForSelector("text=Push day");
 check(true, "alice workout synced to list");
+await alice.screenshot({ path: "e2e/out/workout-complete.png", fullPage: true });
 await bob.goto(`${BASE}/home`);
 const todayBtn = bob.locator('section[aria-label="Pact with Alice"] li button.ring-2');
 check(/Alice trained/.test(await todayBtn.getAttribute("aria-label")), "bob sees alice's day (partner cell)");
