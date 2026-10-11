@@ -39,10 +39,11 @@ Header (always visible): bell → Notifications, avatar → Profile.
 **Onboarding** `/onboarding` (one question per step, progress bar, Back on each step)
 1. Name + @handle (live uniqueness check)
 2. Training goal: Build muscle / Lose fat / Get stronger / Endurance
-3. Body stats: weight, height, birth year, sex, activity level (skippable → no macro goals)
-4. Track nutrition? yes/no → toggles Nutrition tab content
-5. Partner: "Invite a partner now" → New Pact, or "Later" → Home
-- Can't be skipped except step 3; on finish → Home
+3. Quick start survey: days/week, experience, main obstacle (all optional, stored in `profiles.survey`)
+4. Body stats: weight, height, birth year, sex, activity level (skippable → no macro goals)
+5. Track nutrition? yes/no → toggles Nutrition tab content
+6. Partner: "Invite a partner now" → New Pact, or "Later" → Home
+- Can't be skipped except steps 3 and 4; on finish → Home
 
 ## Home `/home`
 - **No pacts**: hero card "Train with someone" → New Pact; pending invites listed with Accept/Decline

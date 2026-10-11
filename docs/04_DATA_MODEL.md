@@ -18,6 +18,7 @@ activity_level text check (activity_level in ('sedentary','light','moderate','ac
 kcal_goal int, protein_g_goal int, carbs_g_goal int, fat_g_goal int
 nutrition_enabled bool default true
 points int default 0 check (points >= 0)
+survey jsonb null              -- onboarding quick-start answers: {days_per_week, experience, obstacle}
 onboarded bool default false
 created_at timestamptz, updated_at timestamptz
 ```

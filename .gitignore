@@ -41,3 +41,26 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 e2e/out/
+
+# local Supabase CLI state (config.toml and migrations stay tracked)
+supabase/.temp/
+supabase/.branches/
+
+# test output
+/test-results/
+/playwright-report/
+*.log
+
+# AI provider comparison output (may contain model replies; never commit)
+scripts/out/
+ai-compare-results*.json
+
+# editors / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db
+
+# local agent settings and plans
+.claude/settings.local.json
+.claude/plans/

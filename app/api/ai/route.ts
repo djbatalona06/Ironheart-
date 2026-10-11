@@ -1,7 +1,7 @@
-import OpenAI from "openai";
 import { z } from "zod";
 import { trainingContext } from "@/lib/ai/context";
-import { FOOD_SYSTEM, FoodEstimate, MODEL, SYSTEM } from "@/lib/ai/prompts";
+import { FOOD_SYSTEM, FoodEstimate, SYSTEM } from "@/lib/ai/prompts";
+import { aiClient, aiConfig } from "@/lib/ai/provider";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
@@ -18,7 +18,8 @@ const Body = z.discriminatedUnion("mode", [
 const fail = (status: number, error: string) => Response.json({ error }, { status });
 
 export async function POST(request: Request) {
-  if (!process.env.OPENAI_API_KEY) return fail(503, "AI isn't set up on this server yet.");
+  const cfg = aiConfig();
+  if (!cfg) return fail(503, "AI isn't set up on this server yet.");
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return fail(401, "Sign in first.");
@@ -31,11 +32,11 @@ export async function POST(request: Request) {
   if (error) return fail(500, "Couldn't check your AI quota.");
   if (refused) return fail(429, refused);
 
-  const openai = new OpenAI();
+  const openai = aiClient(cfg);
   try {
     if (body.mode === "food_estimate") {
       const res = await openai.responses.create({
-        model: MODEL, instructions: FOOD_SYSTEM, input: body.message,
+        model: cfg.model, instructions: FOOD_SYSTEM, input: body.message,
         text: { format: { type: "json_schema", name: "food_estimate", strict: true, schema: z.toJSONSchema(FoodEstimate, { target: "draft-7" }) } },
       });
       await admin.rpc("ai_record", { uid: user.id, used: res.usage?.total_tokens ?? 0 });
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
 
     const context = await trainingContext(sb, user.id);
     const stream = await openai.responses.create({
-      model: MODEL, stream: true,
+      model: cfg.model, stream: true,
       instructions: `${SYSTEM}\n\nThe user's logged workouts (last 30 days):\n${context}`,
       input: [...body.history, { role: "user", content: body.message }],
     });

@@ -35,9 +35,13 @@
 - **Resend**: custom SMTP for magic links (built-in Supabase SMTP is
   testing-only, ~2 emails/hour)
 - **Vercel Hobby**: non-commercial use only. Upgrade before monetizing.
-- **OpenAI API**: model set by `OPENAI_MODEL` env var (cheapest current
-  "mini" model). No free tier; prepaid billing required. Hard caps in code:
-  200 calls/day global, 10/user/day.
+- **AI provider**: any OpenAI-compatible Responses API, chosen by env vars
+  (`AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL`; `OPENAI_*` is the fallback). Pick the
+  cheapest model that passes `scripts/ai-compare.mjs` (valid JSON, streaming,
+  token usage). Candidates: DeepSeek `deepseek-v4-flash`, OpenAI `gpt-5-mini`.
+  Ollama is local-dev only (nothing to host it on Vercel). No free tier;
+  prepaid billing required. Hard caps in code: 200 calls/day global, 10/user/day.
+  DeepSeek's own API processes the context (workouts/food) on its servers.
 
 ## Camera / Media
 - `MediaDevices.getUserMedia()`: camera stream

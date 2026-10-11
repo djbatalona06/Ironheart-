@@ -262,13 +262,13 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "activity_level": string | null,"avatar_url": string | null,"birth_year": number | null,"carbs_g_goal": number | null,"created_at": string,"fat_g_goal": number | null,"goal": string | null,"handle": string | null,"height_cm": number | null,"id": string,"kcal_goal": number | null,"name": string | null,"nutrition_enabled": boolean,"onboarded": boolean,"points": number,"protein_g_goal": number | null,"sex": string | null,"updated_at": string,"weight_kg": number | null
+                    "activity_level": string | null,"avatar_url": string | null,"birth_year": number | null,"carbs_g_goal": number | null,"created_at": string,"fat_g_goal": number | null,"goal": string | null,"handle": string | null,"height_cm": number | null,"id": string,"kcal_goal": number | null,"name": string | null,"nutrition_enabled": boolean,"onboarded": boolean,"points": number,"protein_g_goal": number | null,"sex": string | null,"survey": Json | null,"updated_at": string,"weight_kg": number | null
                   }
                   Insert: {
-                    "activity_level"?: string | null,"avatar_url"?: string | null,"birth_year"?: number | null,"carbs_g_goal"?: number | null,"created_at"?: string,"fat_g_goal"?: number | null,"goal"?: string | null,"handle"?: string | null,"height_cm"?: number | null,"id": string,"kcal_goal"?: number | null,"name"?: string | null,"nutrition_enabled"?: boolean,"onboarded"?: boolean,"points"?: number,"protein_g_goal"?: number | null,"sex"?: string | null,"updated_at"?: string,"weight_kg"?: number | null
+                    "activity_level"?: string | null,"avatar_url"?: string | null,"birth_year"?: number | null,"carbs_g_goal"?: number | null,"created_at"?: string,"fat_g_goal"?: number | null,"goal"?: string | null,"handle"?: string | null,"height_cm"?: number | null,"id": string,"kcal_goal"?: number | null,"name"?: string | null,"nutrition_enabled"?: boolean,"onboarded"?: boolean,"points"?: number,"protein_g_goal"?: number | null,"sex"?: string | null,"survey"?: Json | null,"updated_at"?: string,"weight_kg"?: number | null
                   }
                   Update: {
-                    "activity_level"?: string | null,"avatar_url"?: string | null,"birth_year"?: number | null,"carbs_g_goal"?: number | null,"created_at"?: string,"fat_g_goal"?: number | null,"goal"?: string | null,"handle"?: string | null,"height_cm"?: number | null,"id"?: string,"kcal_goal"?: number | null,"name"?: string | null,"nutrition_enabled"?: boolean,"onboarded"?: boolean,"points"?: number,"protein_g_goal"?: number | null,"sex"?: string | null,"updated_at"?: string,"weight_kg"?: number | null
+                    "activity_level"?: string | null,"avatar_url"?: string | null,"birth_year"?: number | null,"carbs_g_goal"?: number | null,"created_at"?: string,"fat_g_goal"?: number | null,"goal"?: string | null,"handle"?: string | null,"height_cm"?: number | null,"id"?: string,"kcal_goal"?: number | null,"name"?: string | null,"nutrition_enabled"?: boolean,"onboarded"?: boolean,"points"?: number,"protein_g_goal"?: number | null,"sex"?: string | null,"survey"?: Json | null,"updated_at"?: string,"weight_kg"?: number | null
                   }
                   Relationships: [
                     
