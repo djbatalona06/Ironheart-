@@ -49,7 +49,8 @@ export async function finishOnboarding(_: OnboardState, form: FormData): Promise
       })
     : null;
 
-  const { error } = await supabase
+  // select() so a missing profile row is an error, not a silent no-op that loops back to onboarding.
+  const { data: updated, error } = await supabase
     .from("profiles")
     .update({
       name: d.name, handle: d.handle, goal: d.goal,
@@ -61,8 +62,10 @@ export async function finishOnboarding(_: OnboardState, form: FormData): Promise
       survey: Object.keys(answers).length ? answers : null,
       onboarded: true,
     })
-    .eq("id", user.id);
+    .eq("id", user.id)
+    .select("id");
 
   if (error) return { error: error.code === "23505" ? "That @handle is taken." : error.message };
+  if (!updated?.length) return { error: "We couldn't find your profile. Sign out and sign in again." };
   redirect(d.next === "pact" ? "/pacts/new" : "/home");
 }
