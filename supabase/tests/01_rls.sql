@@ -38,6 +38,10 @@ do $$ begin
 exception when insufficient_privilege then raise notice 'ok - created_at not client-settable';
 end $$;
 
+-- Onboarding writes the survey column (regression: it had no column grant).
+update public.profiles set survey = '{"days_per_week":"3"}'::jsonb where id = auth.uid();
+select pg_temp.check((select survey->>'days_per_week' from public.profiles where id = auth.uid()) = '3', 'survey is client-writable');
+
 reset role;
 -- Make alice + bob active partners: alice now sees bob's workout, eve still doesn't.
 insert into public.partnerships (user_a, user_b, status, timezone, invite_goal_days, invite_stake)
