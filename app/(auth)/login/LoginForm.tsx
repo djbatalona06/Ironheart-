@@ -7,7 +7,24 @@ export function LoginForm() {
   const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const redirectTo = () => `${location.origin}/auth/callback`;
+
+  async function verifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+    try {
+      const { supabaseBrowser } = await import("@/lib/supabase/client");
+      const { error } = await supabaseBrowser().auth.verifyOtp({ email: email.trim().toLowerCase(), token: code, type: "email" });
+      if (error) return setError("That code didn't work. Check it, or request a new one.");
+      location.replace("/auth/continue");
+    } catch {
+      setError("Couldn't reach the sign-in service. Check your connection and try again.");
+    } finally {
+      setPending(false);
+    }
+  }
 
   async function sendLink(e?: React.FormEvent) {
     e?.preventDefault();
@@ -51,11 +68,30 @@ export function LoginForm() {
       {sent ? (
         <div className="card space-y-3 p-4 text-center">
           <p className="font-semibold">Check your email</p>
-          <p className="text-sm text-muted">We sent a sign-in link to {email}.</p>
-          <button className="btn-ghost w-full" disabled={pending} onClick={() => sendLink()}>
-            {pending ? "Sending…" : "Resend link"}
+          <p className="text-sm text-muted">We sent a 6-digit code and a sign-in link to {email}.</p>
+          <form onSubmit={verifyCode} className="space-y-3">
+            <label className="block space-y-1 text-left">
+              <span className="text-sm text-muted">Sign-in code</span>
+              <input
+                className="field text-center font-mono text-2xl tracking-[0.4em]"
+                name="code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                required
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+              />
+            </label>
+            <button className="btn-gold w-full" type="submit" disabled={pending || code.length !== 6}>
+              {pending ? "Checking…" : "Sign in"}
+            </button>
+          </form>
+          <button className="btn-ghost w-full" disabled={pending} onClick={() => { setCode(""); sendLink(); }}>
+            {pending ? "Sending…" : "Send a new code"}
           </button>
-          <p className="text-xs text-muted">You can request up to 5 links every 10 minutes. Nothing arriving? Use Google or GitHub below.</p>
+          <p className="text-xs text-muted">You can request up to 5 codes every 10 minutes. Nothing arriving? Check spam, or use Google or GitHub below.</p>
         </div>
       ) : (
         <form onSubmit={sendLink} className="space-y-3">
@@ -71,7 +107,7 @@ export function LoginForm() {
             />
           </label>
           <button className="btn-gold w-full" type="submit" disabled={pending}>
-            {pending ? "Sending…" : "Send magic link"}
+            {pending ? "Sending…" : "Email me a sign-in code"}
           </button>
         </form>
       )}

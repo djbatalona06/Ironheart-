@@ -1,8 +1,10 @@
 import { requireUser } from "@/lib/supabase/server";
 import { DangerZone, LocalMediaPanel, ProfileForm } from "./ProfileForm";
+import { Security } from "./Security";
 
-export default async function Profile() {
+export default async function Profile({ searchParams }: PageProps<"/profile">) {
   const { supabase, user } = await requireUser();
+  const { error } = await searchParams;
   const [{ data: p }, { data: gifts }, { data: media }] = await Promise.all([
     supabase.from("profiles").select("*").single(),
     supabase.from("user_gifts").select("id, message, created_at, gifts(name, icon)").eq("to_user_id", user.id).order("created_at", { ascending: false }).limit(20),
@@ -38,6 +40,7 @@ export default async function Profile() {
         <h2 className="font-bold">Install on iPhone</h2>
         <p className="text-muted">Open IRONHEART in Safari → tap Share → Add to Home Screen. Allow camera access in Safari first so check-ins work from the home-screen app.</p>
       </section>
+      <Security factors={user.factors ?? []} identities={user.identities ?? []} linkError={error === "link"} />
       <DangerZone email={user.email ?? ""} />
     </div>
   );

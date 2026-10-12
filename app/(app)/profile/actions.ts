@@ -38,9 +38,10 @@ export async function updateProfile(_: { ok?: string; error?: string }, form: Fo
   return { ok: "Saved." };
 }
 
-export async function signOut() {
+/** Signs out this device, or every device when scope is "global" (revokes all refresh tokens). */
+export async function signOut(scope?: unknown) {
   const { supabase } = await requireUser();
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: scope === "global" ? "global" : "local" });
   redirect("/login");
 }
 

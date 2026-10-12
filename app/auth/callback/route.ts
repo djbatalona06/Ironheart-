@@ -3,6 +3,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { supabaseServer } from "@/lib/supabase/server";
 
 // Handles OAuth/PKCE (?code=) and email links using token_hash (?token_hash=&type=).
+// Takes no redirect target: /auth/continue decides, from a validated cookie.
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const supabase = await supabaseServer();
@@ -16,8 +17,10 @@ export async function GET(request: NextRequest) {
       ? await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
       : { error: new Error("missing code") };
 
-  if (error) return NextResponse.redirect(new URL("/login?error=1", request.url));
-
-  const { data } = await supabase.from("profiles").select("onboarded").single();
-  return NextResponse.redirect(new URL(data?.onboarded ? "/home" : "/onboarding", request.url));
+  if (error) {
+    // A signed-in user back from Google/GitHub without a code failed to connect it (e.g. already used).
+    const linking = !tokenHash && url.searchParams.has("error") && (await supabase.auth.getUser()).data.user;
+    return NextResponse.redirect(new URL(linking ? "/profile?error=link" : "/login?error=1", request.url));
+  }
+  return NextResponse.redirect(new URL("/auth/continue", request.url));
 }

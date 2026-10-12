@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { NEXT_COOKIE, safeNext } from "@/lib/auth/next";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 
 const PUBLIC = ["/login", "/auth", "/api/auth/magic-link", "/api/health", "/setup", "/offline"];
@@ -28,7 +29,13 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC.some((p) => path === p || path.startsWith(p + "/"));
 
-  if (!data.user && !isPublic) return NextResponse.redirect(new URL("/login", request.url));
+  if (!data.user && !isPublic) {
+    const login = NextResponse.redirect(new URL("/login", request.url));
+    // Remember the deep link (page loads only) so sign-in can return there.
+    const next = request.method === "GET" && path !== "/" ? safeNext(path + request.nextUrl.search) : null;
+    if (next) login.cookies.set(NEXT_COOKIE, next, { httpOnly: true, sameSite: "lax", secure: request.nextUrl.protocol === "https:", maxAge: 900, path: "/" });
+    return login;
+  }
   if (data.user && path === "/login") return NextResponse.redirect(new URL("/home", request.url));
   return response;
 }

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { trainingContext } from "@/lib/ai/context";
 import { FOOD_SYSTEM, FoodEstimate, SYSTEM } from "@/lib/ai/prompts";
 import { aiClient, aiConfig } from "@/lib/ai/provider";
-import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
+import { currentUser, supabaseAdmin } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
 
@@ -18,11 +18,10 @@ const Body = z.discriminatedUnion("mode", [
 const fail = (status: number, error: string) => Response.json({ error }, { status });
 
 export async function POST(request: Request) {
+  const { supabase: sb, user, mfaPending } = await currentUser();
+  if (!user || mfaPending) return fail(401, "Sign in first.");
   const cfg = aiConfig();
   if (!cfg) return fail(503, "AI isn't set up on this server yet.");
-  const sb = await supabaseServer();
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) return fail(401, "Sign in first.");
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail(400, "Invalid request.");
   const body = parsed.data;
