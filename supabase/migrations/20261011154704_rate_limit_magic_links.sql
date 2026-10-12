@@ -1,22 +1,23 @@
 -- Magic-link rate limit: max 5 sign-in emails per hashed address per 10 minutes.
 -- Stored in a private schema that only the service role can reach.
 -- Saved from the remote migration history (version 20261011154704) so local files match.
+-- Idempotent: 20261011043354 already creates these objects on a fresh database.
 CREATE SCHEMA if not exists private;
 revoke all on schema private from public, anon, authenticated;
 grant usage on schema private to service_role;
 
-create table private.magic_link_attempts (
+create table if not exists private.magic_link_attempts (
   email_hash text not null check (email_hash ~ '^[a-f0-9]{64}$'),
   attempted_at timestamptz not null default now()
 );
 
-create index magic_link_attempts_email_time_idx on private.magic_link_attempts (email_hash, attempted_at);
+create index if not exists magic_link_attempts_email_time_idx on private.magic_link_attempts (email_hash, attempted_at);
 
 alter table private.magic_link_attempts enable row level security;
 revoke all on private.magic_link_attempts from public, anon, authenticated;
 grant all on private.magic_link_attempts to service_role;
 
-create function public.take_magic_link_slot(p_email_hash text)
+create or replace function public.take_magic_link_slot(p_email_hash text)
 returns integer
 language plpgsql
 security definer

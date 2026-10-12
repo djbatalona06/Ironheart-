@@ -33,6 +33,7 @@ export async function onboard(page, { name, handle }) {
   await page.fill('input[name="handle"]', handle);
   await page.click("text=Next");
   await page.click("text=Next");                 // goal (default)
+  await page.click("text=Next (or skip)");       // quick-start survey (optional)
   await page.fill('input[name="weight_kg"]', "80");
   await page.fill('input[name="height_cm"]', "180");
   await page.fill('input[name="birth_year"]', "1995");

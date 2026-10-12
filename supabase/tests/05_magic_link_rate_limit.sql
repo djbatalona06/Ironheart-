@@ -16,10 +16,14 @@ update private.magic_link_attempts
 set attempted_at = now() - interval '11 minutes'
 where email_hash = repeat('a', 64);
 
+-- Separate statements: in one, Postgres runs the count subquery before the call.
 select pg_temp.check(
-  public.take_magic_link_slot(repeat('a', 64)) = 0
-  and (select count(*) = 1 from private.magic_link_attempts where email_hash = repeat('a', 64)),
-  'expired attempts are removed and a new attempt is allowed'
+  public.take_magic_link_slot(repeat('a', 64)) = 0,
+  'a new attempt is allowed after the window expires'
+);
+select pg_temp.check(
+  (select count(*) = 1 from private.magic_link_attempts where email_hash = repeat('a', 64)),
+  'expired attempts are removed'
 );
 
 rollback;

@@ -234,11 +234,11 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Route local auth emails to Supabase Inbucket; hosted projects should use custom SMTP.
+# Route local auth emails to the local mail catcher (Mailpit, SMTP 1025); hosted projects use custom SMTP.
 [auth.email.smtp]
 enabled = true
 host = "inbucket"
-port = 2500
+port = 1025
 user = "local"
 pass = "local"
 admin_email = "admin@ironheart.local"
