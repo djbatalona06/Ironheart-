@@ -29,12 +29,27 @@ export function supabaseAdmin() {
   });
 }
 
-/** Signed-in user or redirect to /login. Uses getUser() (verified), not getSession(). */
-export async function requireUser() {
+/**
+ * Verified user (getUser(), not getSession()) plus whether they still owe a
+ * second factor: they have a verified authenticator but this session is aal1.
+ */
+export async function currentUser() {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
-  return { supabase, user: data.user };
+  const user = data.user;
+  if (!user?.factors?.some((f) => f.status === "verified")) return { supabase, user, mfaPending: false };
+  // getUser() just validated this session's token, so reading its aal claim is safe.
+  const token = (await supabase.auth.getSession()).data.session?.access_token ?? "";
+  const claims = JSON.parse(Buffer.from(token.split(".")[1] ?? "", "base64url").toString() || "{}");
+  return { supabase, user, mfaPending: claims.aal !== "aal2" };
+}
+
+/** Fully signed-in user, or redirect to /login (or /login/mfa when a code is owed). */
+export async function requireUser() {
+  const { supabase, user, mfaPending } = await currentUser();
+  if (!user) redirect("/login");
+  if (mfaPending) redirect("/login/mfa");
+  return { supabase, user };
 }
 
 /** The user's IANA timezone from the `tz` cookie (UTC until the browser reports it). */

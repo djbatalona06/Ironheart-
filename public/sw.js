@@ -73,7 +73,7 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   const url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== self.location.origin) return;     // Supabase, OpenAI, etc.
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")) return;
+  if (/^\/(api|auth|login)(\/|$)/.test(url.pathname)) return;                 // never cache sign-in pages
   if (url.pathname.startsWith("/_next/static/")) return e.respondWith(cacheFirst(STATIC, req));
   if (req.mode === "navigate") return e.respondWith(networkFirst(PAGES, req, true));
   if (req.headers.get("RSC") === "1") return e.respondWith(networkFirst(RSC, req, false)); // client-side navigations

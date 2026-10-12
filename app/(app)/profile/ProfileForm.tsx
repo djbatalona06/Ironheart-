@@ -73,7 +73,7 @@ export function LocalMediaPanel({ profileMedia }: { profileMedia: { id: string; 
 export function DangerZone({ email }: { email: string }) {
   return (
     <section className="space-y-2">
-      <form action={signOut} onSubmit={clearCachedPages}><button className="btn-ghost w-full">Sign out of {email}</button></form>
+      <form action={signOut} onSubmit={clearCachedPages}><button className="btn-ghost w-full">Sign out of {email} on this device</button></form>
       <button className="btn-ghost w-full text-danger" onClick={async () => {
         if (confirm("Delete your account and all your data? Active pacts end and partners are notified. This can't be undone.")) { clearCachedPages(); await deleteAccount(); }
       }}>Delete account</button>

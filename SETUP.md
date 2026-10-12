@@ -22,6 +22,9 @@ You need about 30 minutes. Everything here is on free tiers.
    - GitHub: GitHub → Settings → Developer settings → OAuth Apps, same callback URL.
 7. **Authentication → Rate Limits**: the app allows at most 5 magic-link send attempts per email in a rolling 10-minute window. Use custom SMTP and set the project email-send limit to at least 30/hour and OTP email frequency to 1 second so Supabase Auth does not impose a stricter limit first.
 8. **Authentication → Emails → SMTP**: configure a delivery provider such as Resend (free tier about 100 emails/day). The built-in sender is limited to a few emails per hour and cannot support the app's five-request limit.
+9. **Authentication → Emails → Templates**: paste `supabase/templates/magic_link.html` into both the **Magic Link** and **Confirm signup** templates (subject: "Your IRONHEART sign-in code"). It carries the 6-digit code the installed iPhone app needs (email links open in Safari, not the home-screen app).
+10. **Authentication → Multi-Factor**: turn on **TOTP** (enroll + verify). Users opt in from Profile → Security; the database then requires the second factor on every API call for them (`20261012000001_mfa_enforcement.sql`).
+11. **Authentication → Sign In / Providers → Allow manual linking**: on, so users can connect Google/GitHub to an existing account from Profile → Security.
 9. **Project Settings → API**: copy the URL, the anon/publishable key, and the service-role key (keep that one secret).
 
 ## 2. Vercel (hosting)
