@@ -16,11 +16,17 @@
 - Local email sending pointed at the old mail-catcher port (2500 → 1025).
 - The E2E onboarding helper missed the "Quick start" survey step, so every browser suite failed at sign-up.
 
+## Follow-up fixes (mock login test)
+- Supabase advisor "Security Definer View" on `public_profiles`: now `security_invoker`, backed by `private.profile_cards()`.
+- Signing out from Profile and back in returned you to Profile: a background refresh after sign-out was saved as the "return to" page. Only real page loads are remembered now.
+- `currentUser()` is memoized per render (`cache()`): 2 auth-server calls per page load instead of 3+.
+
 ## Not built (and when to add)
 - **CAPTCHA** (Turnstile/hCaptcha) on email sends: add when bot sign-ups appear; Supabase supports `captchaToken`.
 - **Passkeys**: add when Supabase WebAuthn factors are GA.
 - **Change email**: `updateUser({ email })` with double confirm; add when users ask.
 - **Recovery codes**: Supabase has none; a backup authenticator is the recovery path.
+- **Fewer auth calls on link prefetch**: each background prefetch still runs one auth check in `proxy.ts`. Skipping it risks a stale "signed out" prefetch after an idle hour; revisit with `getClaims()` (local JWT check) once the hosted project uses asymmetric signing keys.
 
 ## Hosted setup needed
 See SETUP.md steps 9–11 (email template, TOTP on, manual linking on), then `supabase db push`.

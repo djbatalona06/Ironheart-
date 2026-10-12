@@ -106,6 +106,14 @@ await page2.waitForURL("**/login");
 await page.goto(`${BASE}/home`);
 check(page.url().endsWith("/login"), "other device is signed out too");
 
+// Signing out from Profile must not make Profile the next stop after signing back in.
+await codeSignIn(page2, email);
+await page2.waitForURL("**/login/mfa");
+await page2.fill('input[autocomplete="one-time-code"]', totp(secret, Date.now() + 30000));
+await page2.click("text=Verify");
+await page2.waitForURL(/\/(home|profile)$/);
+check(page2.url().endsWith("/home"), `sign back in after sign-out lands on Home (${new URL(page2.url()).pathname})`);
+
 // ---- headers ----
 const res = await (await b.newContext()).request.get(`${BASE}/login`);
 const csp = res.headers()["content-security-policy"] ?? "";
