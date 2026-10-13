@@ -45,13 +45,27 @@ export async function signOut(scope?: unknown) {
   redirect("/login");
 }
 
-/** Ends open pacts (partners are notified) then deletes the auth user; everything else cascades. */
+/** Ends open pacts (partners are notified), removes stored files, then deletes the auth user; table rows cascade. */
 export async function deleteAccount() {
   const { supabase, user } = await requireUser();
+  const admin = supabaseAdmin();
   const { data: pacts } = await supabase.from("partnerships").select("id").in("status", ["pending", "active"]);
   for (const p of pacts ?? []) await supabase.rpc("end_pact", { p: p.id });
-  await supabase.auth.signOut();
-  const { error } = await supabaseAdmin().auth.admin.deleteUser(user.id);
+
+  // Storage files don't cascade, and Supabase refuses to delete a user who still owns any.
+  for (const bucket of ["media", "avatars"]) {
+    for (;;) {
+      const { data: files, error } = await admin.storage.from(bucket).list(user.id, { limit: 1000 });
+      if (error) throw new Error(error.message);
+      if (!files.length) break;
+      const { error: removeError } = await admin.storage.from(bucket).remove(files.map((f) => `${user.id}/${f.name}`));
+      if (removeError) throw new Error(removeError.message);
+    }
+  }
+
+  // Delete before signing out: if it fails, the user is still signed in and can try again.
+  const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) throw new Error(error.message);
+  await supabase.auth.signOut({ scope: "local" });
   redirect("/login");
 }

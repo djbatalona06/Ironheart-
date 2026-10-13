@@ -21,6 +21,13 @@
 - Signing out from Profile and back in returned you to Profile: a background refresh after sign-out was saved as the "return to" page. Only real page loads are remembered now.
 - `currentUser()` is memoized per render (`cache()`): 2 auth-server calls per page load instead of 3+.
 
+## Account audit (2026-10-12)
+- **Delete account failed for anyone who had uploaded a photo or clip.** Supabase refuses to delete a user who still owns Storage objects. The old order also ended their pacts and signed them out *before* the delete, so it failed with the account intact. Now: end pacts → remove the user's files (`media`, `avatars`) → delete the user → sign out. Covered by `e2e/camera-nutrition.mjs` (there was no test before).
+- Delete account now also clears what only the device held (offline queue, local photos, pending share), so the next person on that device doesn't see it.
+- **Return-to-page never worked once the service worker was active** (see `PHASE_7_NOTES.md`): fixed in `proxy.ts`.
+- There is no "deactivate" (pause) state: an account is active from first sign-in (profile row via `handle_new_user`, then onboarding sets `onboarded`) until it is deleted. Sign-out is per device or everywhere.
+- Sign-out keeps the device's offline queue and local photos (so unsynced logs survive signing back in). On a shared device the next account can see the local photo count and export them. Not changed here: it needs a product decision.
+
 ## Not built (and when to add)
 - **CAPTCHA** (Turnstile/hCaptcha) on email sends: add when bot sign-ups appear; Supabase supports `captchaToken`.
 - **Passkeys**: add when Supabase WebAuthn factors are GA.
