@@ -19,6 +19,11 @@
 - **Headers**: HSTS, `frame-ancestors 'none'`, `base-uri 'self'`, `object-src 'none'`, `form-action 'self'`, nosniff.
 - **Media** lives in a private bucket under `{user_id}/…`. Partners can read check-in photos only, via short-lived
   signed URLs. Files kept on the device (offline/quota fallback) never leave it unless exported.
+- **Shared content** (Android share sheet → IRONHEART) is handled by the service worker and stays on the device
+  until the user saves a log entry. Only that entry syncs; the shared photo is never uploaded, and nothing is sent
+  to a third party. Shared text reaches the AI estimator only if the user taps Estimate.
+- **Delete account** removes the user's Storage files, then the auth user (table rows cascade), and clears the
+  data held on that device (offline queue, local photos, pending share).
 - **AI**: the system prompt is fixed server-side, input is Zod-validated, and per-user plus global daily caps are
   enforced in SQL before any OpenAI call.
 
@@ -38,6 +43,9 @@
 | 2FA blocks aal1 sessions (tables, RPCs, Realtime path) | `supabase/tests/06_mfa.sql` |
 | No view bypasses RLS (Supabase "Security Definer View"); partner search shows handles, never body stats | `supabase/tests/07_public_profiles.sql` |
 | Email code sign-in, return-to-page, 2FA enroll + prompt, aal1 API refused, sign out everywhere, headers | `e2e/auth.mjs` |
+| Share target: 5 MB limit, images only, other POSTs untouched | `lib/pwa/share.test.ts` (`npm test`) |
+| Shares answered on the device, never by the server; kept through sign-in | `e2e/pwa.mjs` |
+| Delete account removes auth user, rows and Storage files | `e2e/camera-nutrition.mjs` |
 | Typecheck, lint, unit tests, **`npm audit --omit=dev --audit-level=high`**, build | `.github/workflows/ci.yml` on every PR |
 
 Known, accepted: `npm audit` reports 2 moderate advisories in `exceljs → uuid` (unused v3/v5/v6 code paths;

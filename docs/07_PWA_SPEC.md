@@ -25,6 +25,15 @@ export default function manifest(): MetadataRoute.Manifest {
 }
 ```
 
+### Shortcuts, launch handler, share target (docs/13, built in phases 7–8)
+- `shortcuts`: Log workout `/workouts`, Log food `/nutrition`, My pact `/home#pact`; 96×96 icons from `scripts/icons.mjs`.
+- `launch_handler: { client_mode: "focus-existing" }`. The open window is focused, not navigated, so
+  `components/pwa/Pwa.tsx` reads `window.launchQueue` and follows shortcut targets itself.
+- `share_target`: `POST /share-target`, multipart, `title`/`text`/`url` + one `image/*` file (max 5 MB).
+  The service worker stores the share in IndexedDB (`ironheart-share`) and redirects to `/nutrition?shared=1`.
+  `app/share-target/route.ts` is only the no-worker fallback.
+- Chromium only. iOS ignores all three.
+
 ## Service Worker (`public/sw.js`, hand-written)
 `next-pwa` is unmaintained, and Serwist needs a route-handler workaround under
 Turbopack (Next 16's default bundler). The app's caching needs fit in ~70 lines of plain JS:
@@ -33,6 +42,7 @@ Turbopack (Next 16's default bundler). The app's caching needs fit in ~70 lines 
 - RSC payloads (client navigations) → network-first in a **separate** cache from HTML
 - same-origin images → cache-first (100 entries)
 - Supabase / `/api` / `/auth` → never cached (private, always fresh)
+- `POST /share-target` → answered on the device (see above); all other non-GET requests pass through
 - Sign-out posts `clear-pages` so the next person on the device can't see cached pages
 - **Warm cache**: after sign-in (`WarmCache`, at most every 6h) the worker pre-caches the core screens
   (`/home`, `/workouts`, `/workouts/new`, `/nutrition`, `/nutrition/foods`, `/camera`, `/wagers`, `/profile`)

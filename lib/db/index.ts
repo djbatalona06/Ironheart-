@@ -22,3 +22,11 @@ export const db = new Dexie("ironheart") as Dexie & {
 };
 db.version(1).stores({ queue: "++seq, kind", exercises: "id, name", media: "key" });
 db.version(2).stores({ foods: "id, name" });
+
+/** Content shared to the app from another app (manifest share_target), waiting to be logged. */
+export type PendingShare = { id?: number; title: string; text: string; url: string; image: File | null; createdAt: number };
+
+// Written by public/sw.js with plain IndexedDB, so it gets its own database: the worker never
+// has to open (or version) the offline queue above. Keep name, version and store in sync with sw.js.
+export const shareDb = new Dexie("ironheart-share") as Dexie & { shares: EntityTable<PendingShare, "id"> };
+shareDb.version(1).stores({ shares: "++id" });

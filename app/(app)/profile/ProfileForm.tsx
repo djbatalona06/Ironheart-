@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { clearCachedPages } from "@/components/pwa/Pwa";
 import { MediaThumb } from "@/components/workout/MediaThumb";
-import { db, type LocalMedia } from "@/lib/db";
+import { db, shareDb, type LocalMedia } from "@/lib/db";
 import type { Tables } from "@/lib/supabase/types";
 import { deleteAccount, signOut, updateProfile } from "./actions";
 
@@ -75,7 +75,12 @@ export function DangerZone({ email }: { email: string }) {
     <section className="space-y-2">
       <form action={signOut} onSubmit={clearCachedPages}><button className="btn-ghost w-full">Sign out of {email} on this device</button></form>
       <button className="btn-ghost w-full text-danger" onClick={async () => {
-        if (confirm("Delete your account and all your data? Active pacts end and partners are notified. This can't be undone.")) { clearCachedPages(); await deleteAccount(); }
+        if (confirm("Delete your account and all your data? Active pacts end and partners are notified. This can't be undone.")) {
+          clearCachedPages();
+          // "All your data" includes what only this device holds: unsynced logs, local photos, pending shares.
+          await Promise.all([...db.tables, ...shareDb.tables].map((t) => t.clear())).catch(() => {});
+          await deleteAccount();
+        }
       }}>Delete account</button>
     </section>
   );

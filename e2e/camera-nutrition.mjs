@@ -117,5 +117,17 @@ await page.click("form button:has-text('Save')");
 await page.waitForSelector("text=Saved.");
 await page.goto(`${BASE}/nutrition`);
 check(await seen(page, "text=Nutrition is off"), "nutrition can be turned off");
+
+// ---- delete account: this user owns Storage files, which block deleting the auth user unless removed first ----
+check(Number(sql(`select count(*) from storage.objects where name like '${uid}/%'`)) > 0, "user has uploaded files before deleting");
+await page.goto(`${BASE}/profile`);
+page.once("dialog", (d) => d.accept());
+await page.click("text=Delete account");
+await page.waitForURL("**/login");
+check(sql(`select count(*) from auth.users where id = '${uid}'`) === "0", "delete account removes the auth user");
+check(sql(`select (select count(*) from profiles where id = '${uid}') + (select count(*) from workouts where user_id = '${uid}') + (select count(*) from media where user_id = '${uid}')`) === "0", "profile, workouts and media rows cascade");
+check(sql(`select count(*) from storage.objects where name like '${uid}/%'`) === "0", "uploaded files are removed from Storage");
+await page.goto(`${BASE}/home`);
+check(page.url().endsWith("/login"), "deleted account is signed out");
 await b.close();
 mock.close();

@@ -20,6 +20,10 @@ await sharp(svg(true, 1)).resize(512).png().toFile("public/icons/512.png");
 await sharp(svg(true, 1)).resize(192).png().toFile("public/icons/192.png");
 await sharp(svg(false, 0.78)).resize(512).png().toFile("public/icons/maskable.png"); // content inside the 80% safe zone
 await sharp(svg(false, 0.9)).resize(180).png().toFile("public/icons/180.png");       // iOS adds its own rounding
+// Manifest shortcuts (long-press menu): the same mark at 96px. Android crops these to a circle.
+for (const name of ["workout", "food", "pact"]) {
+  await sharp(svg(false, 0.78)).resize(96).png().toFile(`public/icons/shortcut-${name}.png`);
+}
 console.log("icons written");
 
 // iOS launch screens (apple-touch-startup-image): black + gold mark, per iPhone portrait size.

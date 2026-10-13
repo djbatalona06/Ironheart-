@@ -13,8 +13,11 @@ type Item = FoodEstimate["items"][number];
 const MULTS = [0.5, 1, 1.5, 2];
 const round = (n: number) => Math.round(n * 10) / 10;
 
-export function FoodLogger({ userId, day, isToday, meal: initialMeal, aiEnabled }: {
-  userId: string; day: string; isToday: boolean; meal: string; aiEnabled: boolean;
+export type FoodLoggerProps = { userId: string; day: string; isToday: boolean; meal: string; aiEnabled: boolean };
+
+/** `prefill` (text shared from another app) opens the logger with it already typed in; `onLogged` runs once an entry is saved. */
+export function FoodLogger({ userId, day, isToday, meal: initialMeal, aiEnabled, prefill = "", onLogged }: FoodLoggerProps & {
+  prefill?: string; onLogged?: () => unknown;
 }) {
   const router = useRouter();
   const [foods, setFoods] = useState<CachedFood[]>([]);
@@ -22,8 +25,8 @@ export function FoodLogger({ userId, day, isToday, meal: initialMeal, aiEnabled 
   const [meal, setMeal] = useState(initialMeal);
   const [pick, setPick] = useState<CachedFood | null>(null);
   const [mult, setMult] = useState(1);
-  const [mode, setMode] = useState<"search" | "describe" | "create">("search");
-  const [desc, setDesc] = useState("");
+  const [mode, setMode] = useState<"search" | "describe" | "create">(!prefill ? "search" : aiEnabled ? "describe" : "create");
+  const [desc, setDesc] = useState(prefill.slice(0, 300));
   const [estimate, setEstimate] = useState<Item[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +49,7 @@ export function FoodLogger({ userId, day, isToday, meal: initialMeal, aiEnabled 
         meal_type: meal, logged_at: loggedAt,
       } });
     }
+    await onLogged?.();
     if (!navigator.onLine) {
       setPick(null); setEstimate(null); setDesc("");
       return setNote(`Saved offline (${items.length}). It syncs when you're back online.`);
@@ -131,7 +135,7 @@ export function FoodLogger({ userId, day, isToday, meal: initialMeal, aiEnabled 
 
       {mode === "create" && (
         <form action={createFood} className="card space-y-3 p-4">
-          <input name="name" required maxLength={80} className="field" placeholder="Food name" aria-label="Food name" defaultValue={q} />
+          <input name="name" required maxLength={80} className="field" placeholder="Food name" aria-label="Food name" defaultValue={q || prefill.split(/\n/)[0].slice(0, 80)} />
           <input name="serving_size" maxLength={40} className="field" placeholder="Serving (e.g. 1 cup)" aria-label="Serving size" />
           <div className="grid grid-cols-2 gap-2">
             {[["calories", "kcal"], ["protein_g", "Protein g"], ["carbs_g", "Carbs g"], ["fat_g", "Fat g"]].map(([k, l]) => (
