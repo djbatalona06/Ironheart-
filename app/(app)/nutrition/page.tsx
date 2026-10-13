@@ -3,18 +3,30 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { EntryRow } from "@/components/nutrition/EntryRow";
 import { MacroRing } from "@/components/nutrition/MacroRing";
 import { PendingNutrition } from "@/components/nutrition/PendingNutrition";
+import { SharedFood } from "@/components/nutrition/SharedFood";
+import { ShareWaiting } from "@/components/nutrition/ShareWaiting";
+import { aiConfig } from "@/lib/ai/provider";
 import { addDays } from "@/lib/pacts/week";
 import { requireUser, userTz } from "@/lib/supabase/server";
 import { dayRange, today } from "@/lib/tz";
 
 const MEALS = ["breakfast", "lunch", "dinner", "snack"] as const;
 
+// Why a share from another app wasn't taken (set by public/sw.js or app/share-target/route.ts).
+const SHARE_PROBLEMS: Record<string, string> = {
+  "too-large": "That image is over 5 MB. Share a smaller one.",
+  "not-image": "IRONHEART can only take photos and text.",
+  unavailable: "Couldn't receive that share. Open IRONHEART once while online, then share again.",
+  empty: "There was nothing to log in that share.",
+  failed: "Couldn't save that share on this device. Try sharing it again.",
+};
+
 export default async function Nutrition({ searchParams }: PageProps<"/nutrition">) {
   const tz = await userTz();
   const now = today(tz);
-  const { d } = await searchParams;
+  const { d, shared } = await searchParams;
   const day = typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= now && d >= addDays(now, -6) ? d : now;
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   const [start, end] = dayRange(day, tz);
   const [{ data: profile }, { data: logs, error }] = await Promise.all([
     supabase.from("profiles").select("nutrition_enabled, kcal_goal, protein_g_goal, carbs_g_goal, fat_g_goal").single(),
@@ -29,6 +41,9 @@ export default async function Nutrition({ searchParams }: PageProps<"/nutrition"
       <Link href="/profile" className="btn-gold">Open profile</Link>
     </div>
   );
+
+  if (shared === "1") return <SharedFood userId={user.id} day={now} isToday meal="snack" aiEnabled={aiConfig() !== null} />;
+  const shareProblem = typeof shared === "string" ? SHARE_PROBLEMS[shared] : undefined;
 
   const sum = (k: "calories" | "protein_g" | "carbs_g" | "fat_g") => (logs ?? []).reduce((t, l) => t + Number(l[k]), 0);
   const kcal = sum("calories");
@@ -60,6 +75,8 @@ export default async function Nutrition({ searchParams }: PageProps<"/nutrition"
         {!profile.kcal_goal && <Link href="/profile" className="block text-center text-xs text-gold underline">Set goals</Link>}
       </section>
 
+      {shareProblem && <p role="alert" className="rounded-lg border border-danger p-3 text-sm text-danger">{shareProblem}</p>}
+      <ShareWaiting />
       <PendingNutrition />
       {error && <p role="alert" className="text-danger">Couldn&apos;t load your log.</p>}
 

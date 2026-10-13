@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useBrowserValue } from "@/hooks/useBrowserValue";
 
 const KEY = "ironheart:visits", DISMISSED = "ironheart:install-dismissed";
+const START_URL = "/home"; // app/manifest.ts start_url
+
+type LaunchQueue = { setConsumer(consumer: (launch: { targetURL?: string }) => void): void };
 
 /** Registers the service worker; shows the iOS "Add to Home Screen" tip from the 2nd visit (iOS has no install prompt). */
 export function Pwa() {
@@ -22,6 +26,20 @@ export function Pwa() {
       navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
     }
   }, []);
+
+  // The manifest's launch_handler ("focus-existing") focuses the open window without
+  // navigating it, so a home-screen shortcut tapped while the app is open would do nothing.
+  // Follow shortcut targets ourselves; a plain icon tap (start_url) stays where the user is.
+  const router = useRouter();
+  useEffect(() => {
+    (window as { launchQueue?: LaunchQueue }).launchQueue?.setConsumer(({ targetURL }) => {
+      if (!targetURL) return;
+      const to = new URL(targetURL, location.href);
+      const target = to.pathname + to.search + to.hash;
+      if (to.origin !== location.origin || target === START_URL || target === location.pathname + location.search + location.hash) return;
+      router.push(target);
+    });
+  }, [router]);
 
   if (!show || dismissed) return null;
   return (

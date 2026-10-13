@@ -1,6 +1,7 @@
 // IRONHEART service worker. Hand-written, no build step (docs/07, Phase 6 notes).
 // Static assets: cache-first. Pages + RSC payloads: network-first (3s), fall back
-// to cache, then /offline. Supabase/API traffic is never cached.
+// to cache, then /offline. Supabase/API traffic is never cached. The one POST handled
+// here is the share target (bottom of the file): stored on the device, never cached.
 const VERSION = "v2";
 // HTML and RSC payloads share URLs, so they live in separate caches (never serve one for the other).
 const STATIC = `static-${VERSION}`, PAGES = `pages-${VERSION}`, RSC = `rsc-${VERSION}`, IMAGES = `images-${VERSION}`;
@@ -69,9 +70,59 @@ async function cacheFirst(cacheName, req, max) {
   return res;
 }
 
+// ---- Share target: a food photo or label text shared to IRONHEART from another app ----
+// Answered here, not by the server, so shared content never leaves the device. It is parked
+// in IndexedDB and the Nutrition screen picks it up (components/nutrition/SharedFood.tsx).
+const SHARE_MAX_BYTES = 5 * 1024 * 1024;
+
+/** Why a shared file can't be taken, or null when it can (also null for "no file"). */
+function shareProblem(file) {
+  if (!file) return null;
+  if (file.size > SHARE_MAX_BYTES) return "too-large";
+  if (!String(file.type).startsWith("image/")) return "not-image";
+  return null;
+}
+
+// Own database, written with plain IndexedDB: the worker has no Dexie and must never touch the
+// offline queue's schema. Name, version and store match `shareDb` in lib/db/index.ts
+// (Dexie version 1 = IndexedDB version 10).
+function saveShare(share) {
+  return new Promise((done, fail) => {
+    const open = indexedDB.open("ironheart-share", 10);
+    open.onupgradeneeded = () => open.result.createObjectStore("shares", { keyPath: "id", autoIncrement: true });
+    open.onerror = () => fail(open.error);
+    open.onsuccess = () => {
+      const tx = open.result.transaction("shares", "readwrite");
+      tx.objectStore("shares").clear(); // one pending share at a time
+      tx.objectStore("shares").add(share);
+      tx.oncomplete = () => { open.result.close(); done(); };
+      tx.onerror = tx.onabort = () => { open.result.close(); fail(tx.error); };
+    };
+  });
+}
+
+async function receiveShare(req) {
+  const to = (state) => Response.redirect(`/nutrition?shared=${state}`, 303);
+  try {
+    const form = await req.formData();
+    const field = (k) => String(form.get(k) ?? "").trim().slice(0, 1000);
+    const file = form.get("image");
+    const image = file && typeof file !== "string" && file.size > 0 ? file : null;
+    const problem = shareProblem(image);
+    if (problem) return to(problem);
+    const share = { title: field("title"), text: field("text"), url: field("url"), image, createdAt: Date.now() };
+    if (!image && !share.title && !share.text && !share.url) return to("empty");
+    await saveShare(share);
+    return to("1");
+  } catch {
+    return to("failed");
+  }
+}
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   const url = new URL(req.url);
+  if (req.method === "POST" && url.origin === self.location.origin && url.pathname === "/share-target") return e.respondWith(receiveShare(req));
   if (req.method !== "GET" || url.origin !== self.location.origin) return;     // Supabase, OpenAI, etc.
   if (/^\/(api|auth|login)(\/|$)/.test(url.pathname)) return;                 // never cache sign-in pages
   if (url.pathname.startsWith("/_next/static/")) return e.respondWith(cacheFirst(STATIC, req));

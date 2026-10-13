@@ -30,10 +30,14 @@ export async function proxy(request: NextRequest) {
   const isPublic = PUBLIC.some((p) => path === p || path.startsWith(p + "/"));
 
   if (!data.user && !isPublic) {
-    const login = NextResponse.redirect(new URL("/login", request.url));
+    // A share that reached the server (no service worker) must not be re-POSTed to /login: 303 → GET.
+    const login = NextResponse.redirect(new URL("/login", request.url), path === "/share-target" ? 303 : 307);
     // Remember the deep link so sign-in can return there. Real page loads only: a
     // background RSC refresh right after sign-out must not become the next stop.
-    const pageLoad = request.method === "GET" && !request.headers.has("rsc") && request.headers.get("sec-fetch-dest") !== "empty";
+    // Judge by fetch mode: a navigation the service worker forwards still says "navigate" but its dest is "empty".
+    const mode = request.headers.get("sec-fetch-mode");
+    const pageLoad = request.method === "GET" && !request.headers.has("rsc")
+      && (mode ? mode === "navigate" : request.headers.get("sec-fetch-dest") !== "empty");
     const next = pageLoad && path !== "/" ? safeNext(path + request.nextUrl.search) : null;
     if (next) login.cookies.set(NEXT_COOKIE, next, { httpOnly: true, sameSite: "lax", secure: request.nextUrl.protocol === "https:", maxAge: 900, path: "/" });
     return login;
