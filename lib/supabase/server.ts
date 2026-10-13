@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/env";
 import type { Database } from "./types";
 
@@ -32,8 +33,9 @@ export function supabaseAdmin() {
 /**
  * Verified user (getUser(), not getSession()) plus whether they still owe a
  * second factor: they have a verified authenticator but this session is aal1.
+ * cache(): one auth-server round trip per page render, not one per layout/page/component.
  */
-export async function currentUser() {
+export const currentUser = cache(async () => {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
   const user = data.user;
@@ -42,7 +44,7 @@ export async function currentUser() {
   const token = (await supabase.auth.getSession()).data.session?.access_token ?? "";
   const claims = JSON.parse(Buffer.from(token.split(".")[1] ?? "", "base64url").toString() || "{}");
   return { supabase, user, mfaPending: claims.aal !== "aal2" };
-}
+});
 
 /** Fully signed-in user, or redirect to /login (or /login/mfa when a code is owed). */
 export async function requireUser() {

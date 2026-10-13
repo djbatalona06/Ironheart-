@@ -14,6 +14,8 @@
   httpOnly cookie that `safeNext()` limits to same-site app paths.
 - **Two-step verification** (opt-in TOTP) is enforced by the database: PostgREST runs `enforce_mfa()` before every
   request, and restrictive policies cover Realtime and Storage, so an `aal1` token can't bypass the `/login/mfa` screen.
+- **Partner search** (`public_profiles`) runs as the caller; the only RLS bypass is the explicit, column-limited
+  `private.profile_cards()` function, which the API doesn't expose.
 - **Headers**: HSTS, `frame-ancestors 'none'`, `base-uri 'self'`, `object-src 'none'`, `form-action 'self'`, nosniff.
 - **Media** lives in a private bucket under `{user_id}/…`. Partners can read check-in photos only, via short-lived
   signed URLs. Files kept on the device (offline/quota fallback) never leave it unless exported.
@@ -34,6 +36,7 @@
 | Gift spending, challenge permissions | `supabase/tests/04_challenges.sql` |
 | Callback rejects forged/reused links, no open redirect, signed-out redirects, cross-user 404, privileged RPC/table writes denied | `e2e/security.mjs` (`npm run e2e`) |
 | 2FA blocks aal1 sessions (tables, RPCs, Realtime path) | `supabase/tests/06_mfa.sql` |
+| No view bypasses RLS (Supabase "Security Definer View"); partner search shows handles, never body stats | `supabase/tests/07_public_profiles.sql` |
 | Email code sign-in, return-to-page, 2FA enroll + prompt, aal1 API refused, sign out everywhere, headers | `e2e/auth.mjs` |
 | Typecheck, lint, unit tests, **`npm audit --omit=dev --audit-level=high`**, build | `.github/workflows/ci.yml` on every PR |
 

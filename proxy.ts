@@ -31,8 +31,10 @@ export async function proxy(request: NextRequest) {
 
   if (!data.user && !isPublic) {
     const login = NextResponse.redirect(new URL("/login", request.url));
-    // Remember the deep link (page loads only) so sign-in can return there.
-    const next = request.method === "GET" && path !== "/" ? safeNext(path + request.nextUrl.search) : null;
+    // Remember the deep link so sign-in can return there. Real page loads only: a
+    // background RSC refresh right after sign-out must not become the next stop.
+    const pageLoad = request.method === "GET" && !request.headers.has("rsc") && request.headers.get("sec-fetch-dest") !== "empty";
+    const next = pageLoad && path !== "/" ? safeNext(path + request.nextUrl.search) : null;
     if (next) login.cookies.set(NEXT_COOKIE, next, { httpOnly: true, sameSite: "lax", secure: request.nextUrl.protocol === "https:", maxAge: 900, path: "/" });
     return login;
   }
